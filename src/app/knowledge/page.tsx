@@ -8,9 +8,10 @@ import Footer from "@/components/Footer";
 import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
 import { Search, X, BookOpen, ExternalLink, Download, FileText } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function KnowledgeLibrary() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, loginWithGoogle } = useAuth();
   const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,7 +49,7 @@ export default function KnowledgeLibrary() {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((prev) => !prev)} />
+      <Navbar />
 
       <main className="min-h-screen bg-[#0B0F14] text-slate-350 py-10 relative overflow-hidden select-text">
         {/* Subtle grid background */}
@@ -172,8 +173,14 @@ export default function KnowledgeLibrary() {
 
                     <div className="flex items-center gap-3 pt-3 border-t border-[#2A3442]/60 text-[10px] font-bold select-none">
                       <a
-                        href={item.file_url}
-                        target="_blank"
+                        href={isLoggedIn ? item.file_url : "#"}
+                        onClick={(e) => {
+                          if (!isLoggedIn) {
+                            e.preventDefault();
+                            loginWithGoogle();
+                          }
+                        }}
+                        target={isLoggedIn ? "_blank" : undefined}
                         rel="noopener noreferrer"
                         className="text-[#3B82F6] hover:text-blue-400 flex items-center gap-1"
                       >
@@ -182,9 +189,14 @@ export default function KnowledgeLibrary() {
                       </a>
                       <span className="text-slate-650">•</span>
                       <a
-                        href={item.file_url}
-                        download
+                        href={isLoggedIn ? item.file_url : "#"}
+                        download={isLoggedIn}
                         onClick={(e) => {
+                          if (!isLoggedIn) {
+                            e.preventDefault();
+                            loginWithGoogle();
+                            return;
+                          }
                           if (item.file_url.startsWith("http")) return;
                           e.preventDefault();
                           alert(`Downloading document: ${item.title}...`);

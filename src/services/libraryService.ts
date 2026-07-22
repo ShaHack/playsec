@@ -2,7 +2,7 @@ import { supabase } from "@/lib/supabase";
 import { LibraryResource } from "@/types/library";
 
 const isEnvMissing = () => {
-  const url = process.env.NEXT_PROJECT_SUPABASE_URL;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   return !url || !key || url.includes("placeholder-project-id") || key.includes("placeholder-signature");
 };

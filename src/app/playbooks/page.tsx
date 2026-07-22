@@ -11,6 +11,7 @@ import { AudioPlaybook } from "@/types/playbook";
 import { 
   Search, X, Volume2, Calendar, Users, Globe, Bookmark, Play
 } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 const CATEGORY_STYLES: Record<string, string> = {
   "Audio Briefings": "bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20",
@@ -26,7 +27,7 @@ const DIFFICULTY_STYLES = {
 };
 
 export default function PlaybooksLibrary() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, loginWithGoogle } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [playbooksList, setPlaybooksList] = useState<AudioPlaybook[]>([]);
   const [loading, setLoading] = useState(true);
@@ -53,6 +54,10 @@ export default function PlaybooksLibrary() {
   const handleBookmarkToggle = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+    if (!isLoggedIn) {
+      loginWithGoogle();
+      return;
+    }
     setBookmarkedIds((prev) => 
       prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id]
     );
@@ -60,7 +65,7 @@ export default function PlaybooksLibrary() {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((prev) => !prev)} />
+      <Navbar />
 
       <main className="min-h-screen bg-[#0B0F14] text-[#F3F4F6] py-12 relative overflow-hidden select-text">
         {/* Subtle grid background */}

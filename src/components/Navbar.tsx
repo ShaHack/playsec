@@ -10,15 +10,19 @@ import {
 import { playbookService } from "@/services/playbookService";
 import { AudioPlaybook } from "@/types/playbook";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 interface NavbarProps {
-  isLoggedIn: boolean;
-  onToggleLogin: () => void;
+  isLoggedIn?: boolean;
+  onToggleLogin?: () => void;
 }
 
-export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
+export default function Navbar({ isLoggedIn: propIsLoggedIn, onToggleLogin }: NavbarProps) {
   const pathname = usePathname();
   const searchContainerRef = useRef<HTMLDivElement>(null);
+  const profileContainerRef = useRef<HTMLDivElement>(null);
+  const { user, isLoggedIn: authIsLoggedIn, loginWithGoogle, logout } = useAuth();
+  const isLoggedIn = authIsLoggedIn;
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
@@ -28,11 +32,15 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
   const [searchResults, setSearchResults] = useState<AudioPlaybook[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileLibraryOpen, setIsMobileLibraryOpen] = useState(false);
+  const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
 
   useEffect(() => {
     function handleOutsideClick(e: MouseEvent) {
       if (searchContainerRef.current && !searchContainerRef.current.contains(e.target as Node)) {
         setIsFocused(false);
+      }
+      if (profileContainerRef.current && !profileContainerRef.current.contains(e.target as Node)) {
+        setIsProfileMenuOpen(false);
       }
     }
     document.addEventListener("mousedown", handleOutsideClick);
@@ -312,14 +320,61 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
             )}
           </div>
 
-          {/* User action */}
-          <button
-            onClick={onToggleLogin}
-            className="flex h-9 w-9 items-center justify-center rounded border border-[#2A3442] bg-[#0B0F14] text-slate-350 hover:bg-[#141A22] hover:text-white transition-colors"
-            title={isLoggedIn ? "Log Out Profile" : "Authenticate Profile"}
-          >
-            <User className={`h-4.5 w-4.5 ${isLoggedIn ? "text-[#3B82F6]" : ""}`} />
-          </button>
+          {/* User action (Supabase Auth) */}
+          {isLoggedIn ? (
+            <div ref={profileContainerRef} className="relative">
+              <button 
+                onClick={() => setIsProfileMenuOpen(prev => !prev)}
+                className="flex items-center gap-2 h-9 px-2 rounded border border-[#2A3442] bg-[#0B0F14] hover:bg-[#141A22] transition-colors cursor-pointer select-none"
+              >
+                {user?.user_metadata?.avatar_url ? (
+                  // eslint-disable-next-line @next/next/no-img-element
+                  <img
+                    src={user.user_metadata.avatar_url}
+                    alt={user.user_metadata.full_name || "User avatar"}
+                    className="h-5 w-5 rounded-full object-cover shrink-0"
+                  />
+                ) : (
+                  <User className="h-4 w-4 text-[#3B82F6] shrink-0" />
+                )}
+                <span className="hidden sm:inline text-xs font-bold text-white max-w-[100px] truncate">
+                  {user?.user_metadata?.full_name || user?.email || "Profile"}
+                </span>
+              </button>
+              {/* Dropdown Menu on Click */}
+              <AnimatePresence>
+                {isProfileMenuOpen && (
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95, y: -5 }}
+                    animate={{ opacity: 1, scale: 1, y: 0 }}
+                    exit={{ opacity: 0, scale: 0.95, y: -5 }}
+                    transition={{ duration: 0.15 }}
+                    className="absolute right-0 mt-1.5 w-32 origin-top-right rounded border border-[#2A3442] bg-[#141A22] p-1 shadow-lg z-50 text-left"
+                  >
+                    <button
+                      onClick={() => {
+                        logout();
+                        setIsProfileMenuOpen(false);
+                      }}
+                      className="w-full text-left px-2.5 py-1.5 rounded hover:bg-[#2A3442] text-xs font-bold text-[#EF4444] transition-colors cursor-pointer"
+                    >
+                      Sign Out
+                    </button>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+            </div>
+          ) : (
+            <button
+              onClick={loginWithGoogle}
+              className="flex h-9 items-center gap-2 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-slate-350 hover:bg-[#141A22] hover:text-white transition-colors text-xs font-bold select-none cursor-pointer"
+            >
+              <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current shrink-0" aria-hidden="true">
+                <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.438a6.445 6.445 0 016.437-6.437c1.558 0 2.978.557 4.095 1.486L21.2 4.135C19.268 2.502 16.742 1.5 12.24 1.5c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5c5.385 0 10.07-3.793 10.07-10.5 0-.66-.06-1.285-.2-1.715H12.24z"/>
+              </svg>
+              <span className="hidden sm:inline">Continue with Google</span>
+            </button>
+          )}
 
           {/* Mobile hamburger menu toggle */}
           <button

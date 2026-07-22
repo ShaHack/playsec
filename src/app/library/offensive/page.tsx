@@ -8,9 +8,10 @@ import Footer from "@/components/Footer";
 import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
 import { Search, X, BookOpen, ExternalLink, Download, FileText, Bookmark, Calendar, User } from "lucide-react";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function OffensiveLibrary() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, loginWithGoogle } = useAuth();
   const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -48,6 +49,10 @@ export default function OffensiveLibrary() {
   }, [rawResources]);
 
   const handleBookmarkToggle = (id: string) => {
+    if (!isLoggedIn) {
+      loginWithGoogle();
+      return;
+    }
     setBookmarkedIds((prev) => 
       prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id]
     );
@@ -55,7 +60,7 @@ export default function OffensiveLibrary() {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((prev) => !prev)} />
+      <Navbar />
 
       <main className="min-h-screen bg-[#0B0F14] text-slate-350 py-10 relative overflow-hidden select-text">
         {/* Subtle grid background */}
@@ -209,8 +214,14 @@ export default function OffensiveLibrary() {
 
                         <div className="flex items-center gap-2 text-[10px] font-bold select-none pt-1">
                           <a
-                            href={item.file_url}
-                            target="_blank"
+                            href={isLoggedIn ? item.file_url : "#"}
+                            onClick={(e) => {
+                              if (!isLoggedIn) {
+                                e.preventDefault();
+                                loginWithGoogle();
+                              }
+                            }}
+                            target={isLoggedIn ? "_blank" : undefined}
                             rel="noopener noreferrer"
                             className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-[#EF4444] hover:border-slate-500 flex items-center gap-1.5"
                           >
@@ -219,9 +230,14 @@ export default function OffensiveLibrary() {
                           </a>
                           
                           <a
-                            href={item.file_url}
-                            download
+                            href={isLoggedIn ? item.file_url : "#"}
+                            download={isLoggedIn}
                             onClick={(e) => {
+                              if (!isLoggedIn) {
+                                e.preventDefault();
+                                loginWithGoogle();
+                                return;
+                              }
                               if (item.file_url.startsWith("http")) return;
                               e.preventDefault();
                               alert(`Downloading document: ${item.title}...`);

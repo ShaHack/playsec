@@ -10,6 +10,7 @@ import Footer from "@/components/Footer";
 import { playbookService } from "@/services/playbookService";
 import { AudioPlaybook } from "@/types/playbook";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Play, Pause, Volume2, Bookmark, Share2, 
   ChevronRight, Calendar, Globe,
@@ -28,7 +29,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const { isLoggedIn, loginWithGoogle } = useAuth();
   const [toastMsg, setToastMsg] = useState("");
   const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Tamil" | "Hindi">(() => {
     if (typeof window !== "undefined") {
@@ -42,13 +43,13 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   
   // Audio Player State
   const [isPlaying, setIsPlaying] = useState(false);
-  const [progress, setProgress] = useState(25);
-  const [currentTimeSec, setCurrentTimeSec] = useState(145);
+  const [progress, setProgress] = useState(0);
+  const [currentTimeSec, setCurrentTimeSec] = useState(0);
+  const [durationSec, setDurationSec] = useState(0);
   const [playbackSpeed, setPlaybackSpeed] = useState(1.0);
   const [volume, setVolume] = useState(80);
-  const durationSec = 580;
   
-  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   // Load Playbook & Related dynamic briefings
   useEffect(() => {
@@ -90,47 +91,48 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   };
 
+  // Handle play/pause commands on audio element
   useEffect(() => {
-    if (isPlaying && playbook && playbook.audio_url) {
-      const tickRate = 1000 / playbackSpeed;
-      timerRef.current = setInterval(() => {
-        setCurrentTimeSec((prev) => {
-          const next = prev + 1;
-          if (next >= durationSec) {
-            setIsPlaying(false);
-            setProgress(100);
-            return durationSec;
-          }
-          setProgress((next / durationSec) * 100);
-          return next;
-        });
-      }, tickRate);
+    if (!audioRef.current) return;
+    if (isPlaying) {
+      audioRef.current.play().catch(e => console.error("Playback start error:", e));
+    } else {
+      audioRef.current.pause();
     }
-    return () => {
-      if (timerRef.current) clearInterval(timerRef.current);
-    };
-  }, [isPlaying, playbook, playbackSpeed]);
+  }, [isPlaying]);
+
+  // Handle speed rate commands on audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed]);
+
+  // Handle volume rate commands on audio element
+  useEffect(() => {
+    if (audioRef.current) {
+      audioRef.current.volume = volume / 100;
+    }
+  }, [volume]);
 
   const handleSkipForward = () => {
-    setCurrentTimeSec((prev) => {
-      const next = Math.min(durationSec, prev + 10);
-      setProgress((next / durationSec) * 100);
-      return next;
-    });
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.min(durationSec, audioRef.current.currentTime + 10);
+    }
   };
 
   const handleSkipBackward = () => {
-    setCurrentTimeSec((prev) => {
-      const next = Math.max(0, prev - 10);
-      setProgress((next / durationSec) * 100);
-      return next;
-    });
+    if (audioRef.current) {
+      audioRef.current.currentTime = Math.max(0, audioRef.current.currentTime - 10);
+    }
   };
 
   const handleProgressChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = parseFloat(e.target.value);
     setProgress(val);
-    setCurrentTimeSec((val / 100) * durationSec);
+    if (audioRef.current && durationSec) {
+      audioRef.current.currentTime = (val / 100) * durationSec;
+    }
   };
 
   const handleShare = () => {
@@ -144,7 +146,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   if (loading) {
     return (
       <>
-        <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn(prev => !prev)} />
+        <Navbar />
         <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-[#A8B3C5]">
           <div className="text-center">
             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6] mx-auto mb-4" />
@@ -159,7 +161,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   if (errorMsg) {
     return (
       <>
-        <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn(prev => !prev)} />
+        <Navbar />
         <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-[#EF4444] p-6">
           <div className="text-center max-w-md bg-[#141A22] border border-[#2A3442] p-6 rounded">
             <h2 className="text-sm font-bold uppercase tracking-wider mb-2">Operational Failure</h2>
@@ -181,7 +183,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn(prev => !prev)} />
+      <Navbar />
       
       <main className="min-h-screen bg-[#0B0F14] text-[#F3F4F6] py-10 relative overflow-hidden select-text">
         
@@ -285,9 +287,36 @@ export default function PlaybookSlugPage({ params }: PageProps) {
               </p>
 
               {/* Central Audio Player Console */}
+              {(() => {
+                console.log("PLAYBOOK:", playbook);
+                return null;
+              })()}
               <div className="bg-[#0B0F14] border border-[#2A3442] rounded p-4 mb-4 select-none">
                 
                 {/* Audio Seek bar */}
+                <audio 
+                  ref={audioRef}
+                  src={playbook.audio_url} 
+                  onTimeUpdate={() => {
+                    if (audioRef.current) {
+                      const cur = audioRef.current.currentTime;
+                      const dur = audioRef.current.duration || 1;
+                      setCurrentTimeSec(cur);
+                      setProgress((cur / dur) * 100);
+                    }
+                  }}
+                  onLoadedMetadata={() => {
+                    if (audioRef.current) {
+                      setDurationSec(audioRef.current.duration || 0);
+                    }
+                  }}
+                  onEnded={() => {
+                    setIsPlaying(false);
+                    setProgress(0);
+                    setCurrentTimeSec(0);
+                  }}
+                />
+                
                 <div className="space-y-1 mb-3">
                   <input 
                     type="range" 
@@ -335,7 +364,13 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                     </button>
 
                     <button 
-                      onClick={() => setIsPlaying(prev => !prev)}
+                      onClick={() => {
+                        if (!isLoggedIn) {
+                          loginWithGoogle();
+                          return;
+                        }
+                        setIsPlaying(prev => !prev);
+                      }}
                       className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 text-white flex items-center justify-center shadow-none transition-all focus:outline-none"
                       aria-label={isPlaying ? "Pause audio playback" : "Play audio playback"}
                     >
@@ -384,6 +419,10 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                   {/* Download button */}
                   <button
                     onClick={() => {
+                      if (!isLoggedIn) {
+                        loginWithGoogle();
+                        return;
+                      }
                       if (!playbook.audio_url) return;
                       window.open(playbook.audio_url, "_blank");
                     }}
