@@ -3,15 +3,15 @@ export interface AudioPlaybook {
   slug: string;
   title: string;
   description: string;
+  author: string;
+  category: "Audio Briefings" | "Case Studies" | "Incident Walkthroughs" | "Security Talks";
+  difficulty: "Beginner" | "Intermediate" | "Advanced";
+  language: string;
+  duration: string;
   cover_image: string;
   audio_url: string;
-  duration: string;
-  difficulty: "Beginner" | "Intermediate" | "Advanced";
-  category: "Audio Briefings" | "Case Studies" | "Incident Walkthroughs" | "Security Talks";
-  author: string;
-  languages: string;
   tags: string[];
-  created_at?: string;
-  updated_at?: string;
+  updated_date?: string;
   featured?: boolean;
+  published?: boolean;
 }

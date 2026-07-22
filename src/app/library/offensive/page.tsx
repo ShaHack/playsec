@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +11,7 @@ import { Search, X, BookOpen, ExternalLink, Download, FileText, Bookmark, Calend
 
 export default function OffensiveLibrary() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -22,19 +25,16 @@ export default function OffensiveLibrary() {
       setErrorMsg("");
       try {
         const data = await libraryService.getAllResources(searchQuery);
-        // Offensive categories: Offensive Security, Cloud Security, Web Security
-        const offensiveData = data.filter(item => 
-          ["Offensive Security", "Cloud Security", "Web Security"].includes(item.category)
-        );
-
+        setRawResources(data);
         if (selectedCategory !== "All") {
-          setResources(offensiveData.filter(item => item.category === selectedCategory));
+          setResources(data.filter(item => item.category === selectedCategory));
         } else {
-          setResources(offensiveData);
+          setResources(data);
         }
-      } catch (err: any) {
-        setErrorMsg(err.message || "Unable to connect to PlaySec servers.");
+      } catch (err: unknown) {
+        setErrorMsg((err as Error).message || "Unable to connect to PlaySec servers.");
         setResources([]);
+        setRawResources([]);
       } finally {
         setLoading(false);
       }
@@ -43,8 +43,9 @@ export default function OffensiveLibrary() {
   }, [searchQuery, selectedCategory]);
 
   const categoriesList = useMemo(() => {
-    return ["All", "Offensive Security", "Cloud Security", "Web Security"];
-  }, []);
+    const unique = new Set(rawResources.map(r => r.category).filter(Boolean));
+    return ["All", ...Array.from(unique)];
+  }, [rawResources]);
 
   const handleBookmarkToggle = (id: string) => {
     setBookmarkedIds((prev) => 
@@ -139,8 +140,8 @@ export default function OffensiveLibrary() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {resources.map((item) => {
                 const isBookmarked = bookmarkedIds.includes(item.id);
-                const displayDate = item.updated_at 
-                  ? new Date(item.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                const displayDate = item.updated_date 
+                  ? new Date(item.updated_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "July 22, 2026";
                 return (
                   <div

@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useMemo, use, useRef } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -28,7 +30,15 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [toastMsg, setToastMsg] = useState("");
-  const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Tamil" | "Hindi">("English");
+  const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Tamil" | "Hindi">(() => {
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("playsec_audio_lang");
+      if (saved === "English" || saved === "Tamil" || saved === "Hindi") {
+        return saved;
+      }
+    }
+    return "English";
+  });
   
   // Audio Player State
   const [isPlaying, setIsPlaying] = useState(false);
@@ -54,22 +64,14 @@ export default function PlaybookSlugPage({ params }: PageProps) {
         } else {
           setPlaybook(null);
         }
-      } catch (e: any) {
-        setErrorMsg(e.message || "Unable to connect to PlaySec servers.");
+      } catch (e: unknown) {
+        setErrorMsg((e as Error).message || "Unable to connect to PlaySec servers.");
       } finally {
         setLoading(false);
       }
     }
     loadPlaybook();
   }, [slug]);
-
-  // Persistence of language selector
-  useEffect(() => {
-    const saved = localStorage.getItem("playsec_audio_lang");
-    if (saved === "English" || saved === "Tamil" || saved === "Hindi") {
-      setSelectedLanguage(saved);
-    }
-  }, []);
 
   const handleLanguageChange = (lang: "English" | "Tamil" | "Hindi") => {
     setSelectedLanguage(lang);
@@ -173,8 +175,8 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     notFound();
   }
 
-  const displayDate = playbook.updated_at
-    ? new Date(playbook.updated_at).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
+  const displayDate = playbook.updated_date
+    ? new Date(playbook.updated_date).toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric" })
     : "Recently Updated";
 
   return (

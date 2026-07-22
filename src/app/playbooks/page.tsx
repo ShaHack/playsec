@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -38,8 +40,8 @@ export default function PlaybooksLibrary() {
       try {
         const data = await playbookService.getAllPlaybooks(searchQuery);
         setPlaybooksList(data);
-      } catch (err: any) {
-        setErrorMsg(err.message || "Unable to connect to PlaySec servers.");
+      } catch (err: unknown) {
+        setErrorMsg((err as Error).message || "Unable to connect to PlaySec servers.");
         setPlaybooksList([]);
       } finally {
         setLoading(false);
@@ -125,10 +127,9 @@ export default function PlaybooksLibrary() {
           ) : playbooksList.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {playbooksList.map((p) => {
-                const categoryStyle = CATEGORY_STYLES[p.category] || "bg-[#141A22] text-[#A8B3C5] border border-[#2A3442]";
                 const difficultyStyle = DIFFICULTY_STYLES[p.difficulty] || "bg-[#141A22] text-[#A8B3C5] border border-[#2A3442]";
-                const displayDate = p.updated_at
-                  ? new Date(p.updated_at).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
+                const displayDate = p.updated_date
+                  ? new Date(p.updated_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "Recently Updated";
                 const isBookmarked = bookmarkedIds.includes(p.id);
 
@@ -185,7 +186,7 @@ export default function PlaybooksLibrary() {
                           <span className="truncate max-w-[130px]">{p.author}</span>
                           <span>•</span>
                           <Globe className="h-3 w-3 text-slate-500 shrink-0" />
-                          <span>{p.languages}</span>
+                          <span>{p.language}</span>
                         </div>
 
                         {/* Short Description */}

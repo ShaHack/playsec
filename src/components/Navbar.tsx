@@ -22,15 +22,12 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
 
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
-  const [isMobileSearchOpen, setIsMobileSearchOpen] = useState(false);
   
   // Mega Menu State
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<AudioPlaybook[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileLibraryOpen, setIsMobileLibraryOpen] = useState(false);
-
-  const mobileSearchRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     function handleOutsideClick(e: MouseEvent) {
@@ -45,7 +42,6 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
   useEffect(() => {
     const query = searchQuery.trim();
     if (!query) {
-      setSearchResults([]);
       return;
     }
 
@@ -270,7 +266,13 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
             <input
               type="text"
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => {
+                const val = e.target.value;
+                setSearchQuery(val);
+                if (!val.trim()) {
+                  setSearchResults([]);
+                }
+              }}
               onFocus={() => setIsFocused(true)}
               placeholder="Search briefings & docs…"
               className="h-9 w-56 rounded border border-[#2A3442] bg-[#0B0F14] pl-9 pr-8 text-xs text-white transition-all placeholder:text-[#A8B3C5] focus:w-68 focus:border-[#3B82F6] focus:outline-none"
@@ -279,7 +281,7 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
             />
             {searchQuery && (
               <button
-                onClick={() => setSearchQuery("")}
+                onClick={() => { setSearchQuery(""); setSearchResults([]); }}
                 className="absolute inset-y-0 right-2.5 flex items-center text-[#A8B3C5] hover:text-white"
                 aria-label="Clear search"
               >
@@ -372,6 +374,3 @@ export default function Navbar({ isLoggedIn, onToggleLogin }: NavbarProps) {
     </header>
   );
 }
-
-// Alias for AnimatePresence warning
-const AnPresence = AnimatePresence;

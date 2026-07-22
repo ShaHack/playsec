@@ -102,9 +102,9 @@ export default function AboutPage() {
             </p>
           </div>
 
-          {/* Who It's For */}
+          {/* Who It&apos;s For */}
           <div>
-            <h3 className="text-base font-bold text-white uppercase tracking-wider mb-6">Who It's For</h3>
+            <h3 className="text-base font-bold text-white uppercase tracking-wider mb-6">Who It&apos;s For</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
               {[
                 "Students",

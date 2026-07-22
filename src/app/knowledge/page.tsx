@@ -1,5 +1,7 @@
 "use client";
 
+export const dynamic = "force-dynamic";
+
 import { useState, useEffect, useMemo } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -9,6 +11,7 @@ import { Search, X, BookOpen, ExternalLink, Download, FileText } from "lucide-re
 
 export default function KnowledgeLibrary() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
@@ -20,11 +23,17 @@ export default function KnowledgeLibrary() {
       setLoading(true);
       setErrorMsg("");
       try {
-        const data = await libraryService.getAllResources(searchQuery, selectedCategory);
-        setResources(data);
-      } catch (err: any) {
-        setErrorMsg(err.message || "Failed to retrieve operational resources.");
+        const data = await libraryService.getAllResources(searchQuery);
+        setRawResources(data);
+        if (selectedCategory !== "All") {
+          setResources(data.filter(item => item.category === selectedCategory));
+        } else {
+          setResources(data);
+        }
+      } catch (err: unknown) {
+        setErrorMsg((err as Error).message || "Failed to retrieve operational resources.");
         setResources([]);
+        setRawResources([]);
       } finally {
         setLoading(false);
       }
@@ -33,8 +42,9 @@ export default function KnowledgeLibrary() {
   }, [searchQuery, selectedCategory]);
 
   const categoriesList = useMemo(() => {
-    return ["All", "Defensive Security", "Offensive Security", "Cloud Security", "Web Security"];
-  }, []);
+    const unique = new Set(rawResources.map(r => r.category).filter(Boolean));
+    return ["All", ...Array.from(unique)];
+  }, [rawResources]);
 
   return (
     <>
