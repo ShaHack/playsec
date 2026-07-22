@@ -3,16 +3,16 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   
-  /* Brand Color Palette - Premium Cybersecurity */
-  --color-primary-blue: #2563EB;
-  --color-dark-text: #FAFAFA;
-  --color-bg-canvas: #09090B;
-  --color-surface-card: #18181B;
-  --color-secondary-text: #A1A1AA;
+  /* Brand Color Palette - Premium Cybersecurity Documentation */
+  --color-primary-blue: #3B82F6;
+  --color-dark-text: #F3F4F6;
+  --color-bg-canvas: #0B0F14;
+  --color-surface-card: #141A22;
+  --color-secondary-text: #A8B3C5;
   --color-success-green: #10B981;
   --color-warning-amber: #F59E0B;
-  --color-border-color: #27272A;
-  --color-hover-bg: #27272A;
+  --color-border-color: #2A3442;
+  --color-hover-bg: #2A3442;
   --color-danger-red: #EF4444;
 
   /* Custom Spacing & Border Radii */
@@ -25,13 +25,13 @@
 }
 
 :root {
-  --background: #09090B;
-  --foreground: #FAFAFA;
+  --background: #0B0F14;
+  --foreground: #F3F4F6;
 }
 
 body {
-  background-color: var(--color-bg-canvas);
-  color: var(--color-dark-text);
+  background-color: #0B0F14;
+  color: #F3F4F6;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -42,64 +42,64 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090B;
+  background: #0B0F14;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272A;
+  background: #2A3442;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3F3F46;
+  background: #3B82F6;
 }
 
 /* ── SUB-5% OPACITY CYBERSECURITY BACKGROUND PATTERNS ── */
 .cyber-grid {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(161, 161, 170, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(161, 161, 170, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(168, 179, 197, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(168, 179, 197, 0.03) 1px, transparent 1px);
 }
 
 .blueprint-pattern {
   background-size: 80px 80px;
   background-image: 
-    radial-gradient(circle, rgba(37, 99, 235, 0.02) 1.5px, transparent 1.5px);
+    radial-gradient(circle, rgba(59, 130, 246, 0.02) 1.5px, transparent 1.5px);
 }
 
 /* Premium Card and Component Tokens */
 .playsec-card {
-  background-color: #18181B;
-  border: 1px solid #27272A;
+  background-color: #141A22;
+  border: 1px solid #2A3442;
   border-radius: 10px;
   box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .playsec-card:hover {
-  border-color: #3F3F46;
+  border-color: #3B82F6;
   transform: translateY(-2px);
   box-shadow: 0 10px 24px 0 rgba(0, 0, 0, 0.5);
 }
 
 .playsec-input {
-  background-color: #09090B;
-  border: 1px solid #27272A;
+  background-color: #0B0F14;
+  border: 1px solid #2A3442;
   border-radius: 6px;
-  color: #FAFAFA;
+  color: #F3F4F6;
   font-size: 0.8125rem;
   transition: all 0.2s ease-in-out;
 }
 
 .playsec-input:focus {
-  border-color: #2563EB;
+  border-color: #3B82F6;
   outline: none;
-  background-color: #111115;
+  background-color: #141A22;
 }
 
 .playsec-btn-primary {
-  background-color: #2563EB;
+  background-color: #3B82F6;
   color: #FFFFFF;
   border: 1px solid transparent;
   border-radius: 6px;
@@ -108,19 +108,19 @@ body {
 }
 
 .playsec-btn-primary:hover {
-  background-color: #1D4ED8;
+  background-color: #2563EB;
 }
 
 .playsec-btn-secondary {
-  background-color: #18181B;
-  color: #FAFAFA;
-  border: 1px solid #27272A;
+  background-color: #141A22;
+  color: #F3F4F6;
+  border: 1px solid #2A3442;
   border-radius: 6px;
   font-weight: 600;
   transition: all 0.2s ease-in-out;
 }
 
 .playsec-btn-secondary:hover {
-  background-color: #27272A;
-  border-color: #3F3F46;
+  background-color: #2A3442;
+  border-color: #3B82F6;
 }
