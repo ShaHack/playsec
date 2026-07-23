@@ -282,10 +282,10 @@ export default function AdminDashboard() {
           });
         }
 
-        try {
-          await supabase.from("playbook_languages").insert(langRecords);
-        } catch (lErr) {
-          console.warn("Could not insert into playbook_languages table:", lErr);
+        const { error: langInsertError } = await supabase.from("playbook_languages").insert(langRecords);
+        if (langInsertError) {
+          console.error("Error inserting into playbook_languages:", langInsertError);
+          throw langInsertError;
         }
       }
 
