@@ -12,6 +12,30 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+// Helper: Strict live database authorization validator
+export const assertAdminAuthorization = async (): Promise<string> => {
+  const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+  
+  if (sessionError || !session || !session.user || !session.user.email) {
+    await supabase.auth.signOut().catch(() => {});
+    throw new Error("Access Denied: You must be authenticated to perform administrative actions.");
+  }
+
+  const userEmail = session.user.email.trim();
+
+  const { data, error } = await supabase
+    .from("admins")
+    .select("id")
+    .ilike("email", userEmail);
+
+  if (error || !data || data.length === 0) {
+    await supabase.auth.signOut().catch(() => {});
+    throw new Error("Access Denied: Your account does not have administrative permissions.");
+  }
+
+  return userEmail;
+};
+
 // Helper: Verify admin authorization directly against database
 export const verifyAdminUser = async (userEmail?: string | null): Promise<boolean> => {
   if (!userEmail) return false;
@@ -31,7 +55,7 @@ export const verifyAdminUser = async (userEmail?: string | null): Promise<boolea
 };
 
 export default function AdminDashboard() {
-  const { isLoggedIn, user, loading: authLoading } = useAuth();
+  const { isLoggedIn, user, loading: authLoading, loginWithGoogle } = useAuth();
   const router = useRouter();
   
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -43,19 +67,28 @@ export default function AdminDashboard() {
       if (authLoading) return;
 
       if (!isLoggedIn || !user?.email) {
-        if (mounted) setIsAdmin(false);
-        router.replace("/");
+        if (mounted) setIsAdmin(null);
         return;
       }
 
-      const authorized = await verifyAdminUser(user.email);
+      try {
+        const authorized = await verifyAdminUser(user.email);
 
-      if (!mounted) return;
+        if (!mounted) return;
 
-      if (authorized) {
-        setIsAdmin(true);
-      } else {
+        if (authorized) {
+          setIsAdmin(true);
+        } else {
+          // Unauthorized account: Revoke session and redirect to home page
+          setIsAdmin(false);
+          await supabase.auth.signOut().catch(() => {});
+          router.replace("/?error=unauthorized");
+        }
+      } catch (err) {
+        console.error("Error verifying admin credentials:", err);
+        if (!mounted) return;
         setIsAdmin(false);
+        await supabase.auth.signOut().catch(() => {});
         router.replace("/?error=unauthorized");
       }
     }
@@ -110,10 +143,13 @@ export default function AdminDashboard() {
 
   // Helper: Upload file to a Supabase bucket and return public URL
   const uploadFileToBucket = async (bucket: string, folder: string, file: File): Promise<string> => {
-    // Live security verification before file storage upload
-    const isAuthorized = await verifyAdminUser(user?.email);
-    if (!isAuthorized) {
-      throw new Error("Unauthorized: Storage upload operation denied for non-administrators.");
+    // 1. Independent authorization verification before storage upload
+    try {
+      await assertAdminAuthorization();
+    } catch (err: any) {
+      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
+      router.replace("/?error=unauthorized");
+      throw new Error(err.message || "Access Denied");
     }
 
     const fileExt = file.name.split(".").pop();
@@ -144,11 +180,14 @@ export default function AdminDashboard() {
   // Handler: Publish Audio Playbook
   const handlePublishPlaybook = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isAuthorized = await verifyAdminUser(user?.email);
-    if (!isAuthorized) {
-      setStatusMsg({ type: "error", text: "Operation forbidden: You are not an authorized administrator." });
+    try {
+      await assertAdminAuthorization();
+    } catch (err: any) {
+      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
+      router.replace("/?error=unauthorized");
       return;
     }
+
     if (!pbTitle.trim() || !pbDesc.trim() || !pbAudioFile) {
       setStatusMsg({ type: "error", text: "Please fill in Title, Description, and select an Audio file." });
       return;
@@ -208,11 +247,14 @@ export default function AdminDashboard() {
   // Handler: Publish Library Resource
   const handlePublishLibrary = async (e: React.FormEvent) => {
     e.preventDefault();
-    const isAuthorized = await verifyAdminUser(user?.email);
-    if (!isAuthorized) {
-      setStatusMsg({ type: "error", text: "Operation forbidden: You are not an authorized administrator." });
+    try {
+      await assertAdminAuthorization();
+    } catch (err: any) {
+      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
+      router.replace("/?error=unauthorized");
       return;
     }
+
     if (!libTitle.trim() || !libDesc.trim() || !libDocFile) {
       setStatusMsg({ type: "error", text: "Please fill in Title, Description, and select a document file." });
       return;
@@ -269,15 +311,83 @@ export default function AdminDashboard() {
     }
   };
 
-  // Strict Route Protection: Only render Admin Dashboard UI when isAdmin is strictly true
-  if (authLoading || isAdmin !== true) {
+  // 1. Loading & Verification State (Shows friendly animated spinner during session check)
+  if (authLoading || (isLoggedIn && isAdmin === null)) {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-slate-350">
+        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center px-6 relative overflow-hidden select-none">
+          <div 
+            className="pointer-events-none absolute inset-0 z-0"
+            style={{
+              opacity: 0.015,
+              backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
+              backgroundSize: "56px 56px",
+            }} 
+          />
+
+          <div className="relative z-10 text-center max-w-sm mx-auto p-8 rounded-xl border border-[#2A3442] bg-[#141A22]/80 backdrop-blur-md shadow-2xl">
+            <div className="relative h-14 w-14 mx-auto mb-5 flex items-center justify-center rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20">
+              <Shield className="h-7 w-7 text-[#3B82F6] animate-pulse" />
+            </div>
+            <Loader className="animate-spin h-6 w-6 text-[#3B82F6] mx-auto mb-3" />
+            <h2 className="text-sm font-bold text-white mb-1">Verifying Administrative Access</h2>
+            <p className="text-xs text-[#A8B3C5] leading-relaxed">
+              Validating user credentials against the SecOps admin database...
+            </p>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // 2. Unauthenticated State: Show Professional Login Card
+  if (!isLoggedIn) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center px-6 relative overflow-hidden select-none">
+          <div 
+            className="pointer-events-none absolute inset-0 z-0"
+            style={{
+              opacity: 0.015,
+              backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
+              backgroundSize: "56px 56px",
+            }} 
+          />
+
+          <div className="relative z-10 max-w-md w-full rounded-xl border border-[#2A3442] bg-[#141A22] p-8 text-center shadow-2xl">
+            <div className="h-12 w-12 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center mx-auto mb-5">
+              <Shield className="h-6 w-6" />
+            </div>
+            <h1 className="text-xl font-extrabold text-white mb-2 tracking-tight">PlaySec CMS Admin</h1>
+            <p className="text-xs text-[#A8B3C5] mb-6 leading-relaxed">
+              Authenticate with your authorized Google account to access the Content Management System.
+            </p>
+            <button
+              onClick={loginWithGoogle}
+              className="w-full flex h-11 items-center justify-center gap-2 px-5 rounded-lg bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs tracking-wide transition-all shadow-lg cursor-pointer active:scale-[0.98]"
+            >
+              <Shield className="h-4 w-4" />
+              <span>Continue with Google</span>
+            </button>
+          </div>
+        </main>
+        <Footer />
+      </>
+    );
+  }
+
+  // 3. Unauthorized State: Redirecting Screen
+  if (isAdmin === false) {
+    return (
+      <>
+        <Navbar />
+        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-slate-350 select-none">
           <div className="text-center">
-            <Loader className="animate-spin h-8 w-8 text-[#3B82F6] mx-auto mb-4" />
-            <p className="text-xs">Verifying authorization access...</p>
+            <Loader className="animate-spin h-6 w-6 text-[#EF4444] mx-auto mb-3" />
+            <p className="text-xs font-semibold text-slate-300">Access Denied. Redirecting to home...</p>
           </div>
         </main>
         <Footer />
