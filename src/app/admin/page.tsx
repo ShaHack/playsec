@@ -12,53 +12,59 @@ import {
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 
+// Helper: Verify admin authorization directly against database
+export const verifyAdminUser = async (userEmail?: string | null): Promise<boolean> => {
+  if (!userEmail) return false;
+  try {
+    const { data, error } = await supabase
+      .from("admins")
+      .select("id")
+      .ilike("email", userEmail.trim());
+
+    if (error || !data || data.length === 0) {
+      return false;
+    }
+    return true;
+  } catch {
+    return false;
+  }
+};
+
 export default function AdminDashboard() {
-  const { isLoggedIn, user, loading: authLoading, loginWithGoogle } = useAuth();
+  const { isLoggedIn, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
-  const [adminCheckLoading, setAdminCheckLoading] = useState(false);
 
   useEffect(() => {
+    let mounted = true;
+
     async function checkAdminStatus() {
+      if (authLoading) return;
+
       if (!isLoggedIn || !user?.email) {
-        setIsAdmin(false);
-        if (!authLoading && !isLoggedIn) {
-          router.push("/");
-        }
+        if (mounted) setIsAdmin(false);
+        router.replace("/");
         return;
       }
-      setAdminCheckLoading(true);
-      try {
-        const { data, error } = await supabase
-          .from("admins")
-          .select("id")
-          .eq("email", user.email);
 
-        if (error) {
-          console.error("Error querying admins table:", error);
-          setIsAdmin(false);
-          router.push("/?error=unauthorized");
-        } else if (data && data.length > 0) {
-          setIsAdmin(true);
-        } else {
-          setIsAdmin(false);
-          router.push("/?error=unauthorized");
-        }
-      } catch (err) {
-        console.error("Exception checking admin status:", err);
+      const authorized = await verifyAdminUser(user.email);
+
+      if (!mounted) return;
+
+      if (authorized) {
+        setIsAdmin(true);
+      } else {
         setIsAdmin(false);
-        router.push("/?error=unauthorized");
-      } finally {
-        setAdminCheckLoading(false);
+        router.replace("/?error=unauthorized");
       }
     }
     
-    if (!authLoading) {
-      checkAdminStatus();
-    } else {
-      setIsAdmin(null);
-    }
+    checkAdminStatus();
+
+    return () => {
+      mounted = false;
+    };
   }, [isLoggedIn, user, authLoading, router]);
 
   // Tab State: 'playbook' | 'library'
@@ -104,6 +110,12 @@ export default function AdminDashboard() {
 
   // Helper: Upload file to a Supabase bucket and return public URL
   const uploadFileToBucket = async (bucket: string, folder: string, file: File): Promise<string> => {
+    // Live security verification before file storage upload
+    const isAuthorized = await verifyAdminUser(user?.email);
+    if (!isAuthorized) {
+      throw new Error("Unauthorized: Storage upload operation denied for non-administrators.");
+    }
+
     const fileExt = file.name.split(".").pop();
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     
@@ -132,7 +144,8 @@ export default function AdminDashboard() {
   // Handler: Publish Audio Playbook
   const handlePublishPlaybook = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin) {
+    const isAuthorized = await verifyAdminUser(user?.email);
+    if (!isAuthorized) {
       setStatusMsg({ type: "error", text: "Operation forbidden: You are not an authorized administrator." });
       return;
     }
@@ -195,7 +208,8 @@ export default function AdminDashboard() {
   // Handler: Publish Library Resource
   const handlePublishLibrary = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isAdmin) {
+    const isAuthorized = await verifyAdminUser(user?.email);
+    if (!isAuthorized) {
       setStatusMsg({ type: "error", text: "Operation forbidden: You are not an authorized administrator." });
       return;
     }
@@ -255,7 +269,8 @@ export default function AdminDashboard() {
     }
   };
 
-  if (authLoading || (isLoggedIn && adminCheckLoading && isAdmin === null) || !isLoggedIn || isAdmin === false) {
+  // Strict Route Protection: Only render Admin Dashboard UI when isAdmin is strictly true
+  if (authLoading || isAdmin !== true) {
     return (
       <>
         <Navbar />
