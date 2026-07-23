@@ -58,7 +58,6 @@ export async function POST(req: NextRequest) {
 
     // Validation
     if (isFeedback) {
-      // Name & Email are optional for feedback, but message is required (15 to 3000 chars)
       if (!message) {
         return NextResponse.json({ error: "Feedback message cannot be empty." }, { status: 400 });
       }
@@ -72,7 +71,6 @@ export async function POST(req: NextRequest) {
         return NextResponse.json({ error: "Please enter a valid email address." }, { status: 400 });
       }
     } else {
-      // Support Ticket requires Name, Email, Subject, Message
       if (!name) {
         return NextResponse.json({ error: "Please enter your name." }, { status: 400 });
       }
@@ -112,7 +110,7 @@ export async function POST(req: NextRequest) {
     ipRecord.lastSubmittedTime = now;
     ipCache.set(ip, ipRecord);
 
-    // ── DATABASE PERSISTENCE (Supabase feedback & support_tickets tables) ──
+    // ── DATABASE PERSISTENCE ──
     if (isFeedback) {
       try {
         await supabase.from("feedback").insert([
@@ -144,17 +142,17 @@ export async function POST(req: NextRequest) {
       }
     }
 
-    // ── RESEND EMAIL NOTIFICATION ──
+    // ── EMAIL DELIVERY VIA RESEND ──
     const apiKey = process.env.RESEND_API_KEY;
-    const emailTypeLabel = isFeedback ? `Feedback (${feedbackType} - ${ratingVal} Stars)` : `Support Ticket (${priority} Priority)`;
-    const emailSubject = isFeedback 
+    const emailTypeLabel = isFeedback ? `Feedback (${feedbackType})` : `Support Ticket (${priority} Priority)`;
+    const adminSubject = isFeedback 
       ? `[PlaySec Feedback] ${feedbackType} from ${name || "Anonymous"}`
       : `[PlaySec Support] ${subject}`;
 
     const submittedAt = new Date().toUTCString();
     const userAgent = req.headers.get("user-agent") || "Unknown Browser";
 
-    const textBody = `
+    const adminTextBody = `
 -----------------------------------
 PlaySec Community Form
 
@@ -186,17 +184,39 @@ ${userAgent}
     `.trim();
 
     if (apiKey) {
+      const resend = new Resend(apiKey);
+
+      // Email 1: Notification to playsec.platform@gmail.com
       try {
-        const resend = new Resend(apiKey);
         await resend.emails.send({
           from: "PlaySec Community <onboarding@resend.dev>",
           to: ["playsec.platform@gmail.com"],
           replyTo: email || undefined,
-          subject: emailSubject,
-          text: textBody,
+          subject: adminSubject,
+          text: adminTextBody,
         });
       } catch (rErr) {
-        console.error("[PlaySec Contact API] Resend email notice:", rErr);
+        console.error("[PlaySec Contact API] Admin notification email notice:", rErr);
+      }
+
+      // Email 2: Auto-responder confirmation email sent back to User (if email exists)
+      if (email) {
+        try {
+          await resend.emails.send({
+            from: "PlaySec Platform <onboarding@resend.dev>",
+            to: [email],
+            subject: "Thanks for contacting PlaySec",
+            html: buildConfirmationHtml({
+              name: name || "there",
+              typeLabel: isFeedback ? `Feedback (${feedbackType})` : `Support Ticket (${priority} Priority)`,
+              subject: isFeedback ? feedbackType : subject,
+              submittedAt,
+            }),
+          });
+        } catch (confError) {
+          // If user confirmation fails, log the error silently without failing the support request
+          console.warn("[PlaySec Contact API] User confirmation email warning:", confError);
+        }
       }
     }
 
@@ -216,4 +236,103 @@ ${userAgent}
       { status: 500 }
     );
   }
+}
+
+// Helper: Professional HTML Email Template Generator
+function buildConfirmationHtml({
+  name,
+  typeLabel,
+  subject,
+  submittedAt
+}: {
+  name: string;
+  typeLabel: string;
+  subject: string;
+  submittedAt: string;
+}) {
+  return `
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Thanks for contacting PlaySec</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0B0F14; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; color: #F3F4F6;">
+  <table width="100%" border="0" cellspacing="0" cellpadding="0" style="background-color: #0B0F14; padding: 32px 16px;">
+    <tr>
+      <td align="center">
+        <table width="100%" max-width="560" border="0" cellspacing="0" cellpadding="0" style="max-width: 560px; background-color: #141A22; border: 1px solid #2A3442; border-radius: 12px; overflow: hidden; box-shadow: 0 10px 25px rgba(0,0,0,0.5);">
+          
+          <!-- Header Bar -->
+          <tr>
+            <td style="padding: 28px 32px; background-color: #0F172A; border-bottom: 1px solid #2A3442; text-align: left;">
+              <table border="0" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="font-size: 20px; font-weight: 900; letter-spacing: -0.5px; color: #FFFFFF;">
+                    PLAY<span style="color: #00F2FE;">SEC</span>
+                  </td>
+                </tr>
+              </table>
+            </td>
+          </tr>
+
+          <!-- Main Content -->
+          <tr>
+            <td style="padding: 32px; text-align: left;">
+              <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #FFFFFF;">
+                Hi ${name},
+              </h2>
+              
+              <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #A8B3C5;">
+                We have received your message. Our team will review it and respond as soon as possible.
+              </p>
+
+              <!-- Summary Card -->
+              <div style="background-color: #0B0F14; border: 1px solid #2A3442; border-radius: 8px; padding: 20px; margin: 24px 0;">
+                <h3 style="margin: 0 0 14px 0; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.1em; color: #00F2FE;">
+                  Summary
+                </h3>
+
+                <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748B; width: 100px; font-weight: 600;">Type:</td>
+                    <td style="padding: 6px 0; color: #FFFFFF; font-weight: 600;">${typeLabel}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748B; font-weight: 600;">Subject:</td>
+                    <td style="padding: 6px 0; color: #FFFFFF;">${subject}</td>
+                  </tr>
+                  <tr>
+                    <td style="padding: 6px 0; color: #64748B; font-weight: 600;">Submitted:</td>
+                    <td style="padding: 6px 0; color: #A8B3C5; font-family: monospace;">${submittedAt}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <p style="margin: 0 0 24px 0; font-size: 14px; color: #A8B3C5;">
+                Thank you for using PlaySec.
+              </p>
+
+              <div style="border-top: 1px solid #2A3442; padding-top: 20px; text-align: left;">
+                <p style="margin: 0 0 4px 0; font-size: 14px; font-weight: 700; color: #FFFFFF;">PlaySec Team</p>
+                <a href="https://playsec.vercel.app" target="_blank" style="font-size: 13px; color: #38BDF8; text-decoration: none;">https://playsec.vercel.app</a>
+              </div>
+            </td>
+          </tr>
+
+          <!-- Footer Bar -->
+          <tr>
+            <td style="padding: 16px 32px; background-color: #0B0F14; border-top: 1px solid #2A3442; text-align: center; font-size: 11px; color: #64748B;">
+              © ${new Date().getFullYear()} PlaySec Platform. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+  `.trim();
 }
