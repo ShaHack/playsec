@@ -146,14 +146,14 @@ export async function POST(req: NextRequest) {
     // ── EMAIL DELIVERY VIA RESEND ──
     const apiKey = process.env.RESEND_API_KEY;
     const emailTypeLabel = isFeedback ? `Feedback (${feedbackType})` : `Support Ticket (${priority} Priority)`;
-    const adminSubject = isFeedback 
+    const notificationSubject = isFeedback 
       ? `[PlaySec Feedback] ${feedbackType} from ${name || "Anonymous"}`
       : `[PlaySec Support] ${subject}`;
 
     const submittedAt = new Date().toUTCString();
     const userAgent = req.headers.get("user-agent") || "Unknown Browser";
 
-    const adminTextBody = `
+    const notificationTextBody = `
 -----------------------------------
 PlaySec Community Form
 
@@ -193,8 +193,8 @@ ${userAgent}
           from: "PlaySec Community <onboarding@resend.dev>",
           to: ["playsec.platform@gmail.com"],
           replyTo: email || undefined,
-          subject: adminSubject,
-          text: adminTextBody,
+          subject: notificationSubject,
+          text: notificationTextBody,
         });
       } catch {
         // Silently continue if notification fails
