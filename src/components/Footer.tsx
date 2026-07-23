@@ -2,6 +2,7 @@
 
 import { Shield } from "lucide-react";
 import Link from "next/link";
+import PlaySecLogo from "@/components/PlaySecLogo";
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -13,13 +14,8 @@ export default function Footer() {
         {/* Top brand row */}
         <div className="flex flex-col sm:flex-row items-center justify-between gap-6 pb-6 border-b border-[#2A3442]/60">
           
-          <div className="flex items-center gap-2">
-            <div className="flex h-7 w-7 items-center justify-center rounded bg-[#3B82F6] text-white">
-              <Shield className="h-4 w-4" />
-            </div>
-            <span className="text-base font-bold tracking-tight text-white">
-              PLAY<span className="text-[#3B82F6]">SEC</span>
-            </span>
+          <div className="flex items-center">
+            <PlaySecLogo size={28} showText={true} />
           </div>
 
           {/* Center Links */}

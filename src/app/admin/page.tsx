@@ -11,6 +11,7 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import PlaySecLogo from "@/components/PlaySecLogo";
 
 // Helper: Strict live database authorization validator
 export const assertAdminAuthorization = async (): Promise<string> => {
@@ -387,8 +388,8 @@ export default function AdminDashboard() {
           />
 
           <div className="relative z-10 text-center max-w-sm mx-auto p-8 rounded-xl border border-[#2A3442] bg-[#141A22]/80 backdrop-blur-md shadow-2xl">
-            <div className="relative h-14 w-14 mx-auto mb-5 flex items-center justify-center rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20">
-              <Shield className="h-7 w-7 text-[#3B82F6] animate-pulse" />
+            <div className="mx-auto mb-5 flex items-center justify-center">
+              <PlaySecLogo size={56} className="animate-pulse" />
             </div>
             <Loader className="animate-spin h-6 w-6 text-[#3B82F6] mx-auto mb-3" />
             <h2 className="text-sm font-bold text-white mb-1">Verifying Administrative Access</h2>
@@ -418,8 +419,8 @@ export default function AdminDashboard() {
           />
 
           <div className="relative z-10 max-w-md w-full rounded-xl border border-[#2A3442] bg-[#141A22] p-8 text-center shadow-2xl">
-            <div className="h-12 w-12 rounded-full bg-[#3B82F6]/10 border border-[#3B82F6]/20 text-[#3B82F6] flex items-center justify-center mx-auto mb-5">
-              <Shield className="h-6 w-6" />
+            <div className="flex items-center justify-center mx-auto mb-5">
+              <PlaySecLogo size={52} />
             </div>
             <h1 className="text-xl font-extrabold text-white mb-2 tracking-tight">PlaySec CMS Admin</h1>
             <p className="text-xs text-[#A8B3C5] mb-6 leading-relaxed">

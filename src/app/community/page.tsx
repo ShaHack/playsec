@@ -69,11 +69,14 @@ export default function CommunityPage() {
   const [faqSearch, setFaqSearch] = useState("");
   const [expandedFaqId, setExpandedFaqId] = useState<number | null>(null);
   
-  // Support Form State
+  // Support & Feedback Form State
+  const [formType, setFormType] = useState<"Feedback" | "Support">("Support");
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formSubject, setFormSubject] = useState("");
   const [formMessage, setFormMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [statusSuccessMsg, setStatusSuccessMsg] = useState("");
   
   const [toast, setToast] = useState<{ show: boolean; msg: string; type: "success" | "error" }>({
     show: false,
@@ -96,8 +99,10 @@ export default function CommunityPage() {
     );
   }, [faqSearch]);
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusSuccessMsg("");
+
     if (!formName.trim() || !formEmail.trim() || !formSubject.trim() || !formMessage.trim()) {
       setToast({ show: true, msg: "Please fill in all fields before sending.", type: "error" });
       return;
@@ -106,15 +111,45 @@ export default function CommunityPage() {
       setToast({ show: true, msg: "Please provide a valid email address.", type: "error" });
       return;
     }
-    setToast({
-      show: true,
-      msg: "Support ticket queued successfully. Our operations desk will respond shortly.",
-      type: "success",
-    });
-    setFormName("");
-    setFormEmail("");
-    setFormSubject("");
-    setFormMessage("");
+
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formType,
+          name: formName.trim(),
+          email: formEmail.trim(),
+          subject: formSubject.trim(),
+          message: formMessage.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setToast({ show: true, msg: data.error || "Unable to send your message. Please try again.", type: "error" });
+        return;
+      }
+
+      const successText = "Your message has been sent successfully.";
+      setStatusSuccessMsg(successText);
+      setToast({
+        show: true,
+        msg: successText,
+        type: "success",
+      });
+      setFormName("");
+      setFormEmail("");
+      setFormSubject("");
+      setFormMessage("");
+    } catch (err) {
+      setToast({ show: true, msg: "Unable to send your message. Please try again.", type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -303,20 +338,51 @@ export default function CommunityPage() {
                 </div>
               </div>
 
-              {/* Support Ticket Form */}
+              {/* Support & Feedback Ticket Form */}
               <div id="ticket-form" className="rounded border border-[#2A3442] bg-[#141A22] shadow-sm overflow-hidden">
                 <div className="px-5 py-3 border-b border-[#2A3442] bg-[#141A22] flex items-center justify-between">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">New Support Ticket</span>
+                  <div className="flex items-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setFormType("Support")}
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                        formType === "Support"
+                          ? "bg-[#3B82F6] text-white"
+                          : "bg-[#0B0F14] text-[#A8B3C5] hover:text-white border border-[#2A3442]"
+                      }`}
+                    >
+                      Contact Support
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setFormType("Feedback")}
+                      className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
+                        formType === "Feedback"
+                          ? "bg-[#3B82F6] text-white"
+                          : "bg-[#0B0F14] text-[#A8B3C5] hover:text-white border border-[#2A3442]"
+                      }`}
+                    >
+                      Feedback
+                    </button>
+                  </div>
                   <span className="text-[10px] font-mono text-slate-500">STATUS: ACTIVE</span>
                 </div>
 
                 <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
+                  {statusSuccessMsg && (
+                    <div className="p-3 rounded border border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981] text-xs font-semibold flex items-center gap-2">
+                      <CheckCircle className="h-4 w-4 shrink-0" />
+                      <span>{statusSuccessMsg}</span>
+                    </div>
+                  )}
+
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div className="space-y-1">
                       <label htmlFor="name-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Name</label>
                       <input
                         id="name-field"
                         type="text"
+                        required
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         placeholder="Jane Doe"
@@ -327,7 +393,8 @@ export default function CommunityPage() {
                       <label htmlFor="email-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Address</label>
                       <input
                         id="email-field"
-                        type="text"
+                        type="email"
+                        required
                         value={formEmail}
                         onChange={(e) => setFormEmail(e.target.value)}
                         placeholder="jane@organization.com"
@@ -341,9 +408,10 @@ export default function CommunityPage() {
                     <input
                       id="subject-field"
                       type="text"
+                      required
                       value={formSubject}
                       onChange={(e) => setFormSubject(e.target.value)}
-                      placeholder="Enter support issue summary"
+                      placeholder={formType === "Feedback" ? "Enter your platform feedback subject" : "Enter support issue summary"}
                       className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none"
                     />
                   </div>
@@ -352,20 +420,26 @@ export default function CommunityPage() {
                     <label htmlFor="desc-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Message Description</label>
                     <textarea
                       id="desc-field"
+                      required
                       value={formMessage}
                       rows={4}
                       onChange={(e) => setFormMessage(e.target.value)}
-                      placeholder="Provide full description of your support request..."
+                      placeholder={formType === "Feedback" ? "Provide detailed feedback about PlaySec features..." : "Provide full description of your support request..."}
                       className="w-full p-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none resize-none"
                     />
                   </div>
 
                   <button
                     type="submit"
-                    className="w-full h-9 rounded bg-[#3B82F6] text-xs font-bold text-white hover:bg-blue-600 active:scale-[0.99] transition-all flex items-center justify-center gap-1.5 select-none"
+                    disabled={submitting}
+                    className={`w-full h-9 rounded text-xs font-bold text-white transition-all flex items-center justify-center gap-1.5 select-none ${
+                      submitting
+                        ? "bg-[#3B82F6]/60 cursor-not-allowed"
+                        : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                    }`}
                   >
-                    <Send className="h-4 w-4" />
-                    Submit Ticket
+                    <Send className={`h-4 w-4 ${submitting ? "animate-pulse" : ""}`} />
+                    {submitting ? "Sending message..." : `Submit ${formType}`}
                   </button>
                 </form>
               </div>

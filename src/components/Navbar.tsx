@@ -11,6 +11,7 @@ import { playbookService } from "@/services/playbookService";
 import { AudioPlaybook } from "@/types/playbook";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import PlaySecLogo from "@/components/PlaySecLogo";
 
 interface NavbarProps {
   isLoggedIn?: boolean;
@@ -97,13 +98,8 @@ export default function Navbar({ isLoggedIn: propIsLoggedIn, onToggleLogin }: Na
       <div className="mx-auto flex h-full max-w-[1380px] items-center justify-between px-6 lg:px-10">
 
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="flex h-9 w-9 items-center justify-center rounded bg-[#3B82F6] text-white transition-transform group-hover:scale-105">
-            <Shield className="h-4.5 w-4.5 stroke-[2.5]" />
-          </div>
-          <span className="text-[17px] font-black tracking-tight text-white">
-            PLAY<span className="text-[#3B82F6]">SEC</span>
-          </span>
+        <Link href="/" className="flex items-center group">
+          <PlaySecLogo size={32} showText={true} className="transition-transform group-hover:scale-[1.02]" />
         </Link>
 
         {/* Nav links (Desktop) */}

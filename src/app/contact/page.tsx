@@ -12,14 +12,18 @@ export default function ContactPage() {
   const [formEmail, setFormEmail] = useState("");
   const [formSubject, setFormSubject] = useState("");
   const [formMessage, setFormMessage] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+  const [statusSuccessMsg, setStatusSuccessMsg] = useState("");
   const [toast, setToast] = useState<{ show: boolean; msg: string; type: "success" | "error" }>({
     show: false,
     msg: "",
     type: "success",
   });
 
-  const handleFormSubmit = (e: React.FormEvent) => {
+  const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setStatusSuccessMsg("");
+
     if (!formName.trim() || !formEmail.trim() || !formSubject.trim() || !formMessage.trim()) {
       setToast({ show: true, msg: "Please fill in all fields before submitting.", type: "error" });
       return;
@@ -29,19 +33,44 @@ export default function ContactPage() {
       return;
     }
 
-    setToast({
-      show: true,
-      msg: "Enquiry submitted successfully. Our operations team will respond shortly.",
-      type: "success",
-    });
-    setFormName("");
-    setFormEmail("");
-    setFormSubject("");
-    setFormMessage("");
+    setSubmitting(true);
 
-    setTimeout(() => {
-      setToast((p) => ({ ...p, show: false }));
-    }, 4000);
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          formType: "Support",
+          name: formName.trim(),
+          email: formEmail.trim(),
+          subject: formSubject.trim(),
+          message: formMessage.trim(),
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setToast({ show: true, msg: data.error || "Unable to send your message. Please try again.", type: "error" });
+        return;
+      }
+
+      const successText = "Your message has been sent successfully.";
+      setStatusSuccessMsg(successText);
+      setToast({
+        show: true,
+        msg: successText,
+        type: "success",
+      });
+      setFormName("");
+      setFormEmail("");
+      setFormSubject("");
+      setFormMessage("");
+    } catch (err) {
+      setToast({ show: true, msg: "Unable to send your message. Please try again.", type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -142,15 +171,21 @@ export default function ContactPage() {
                 <div className="px-5 py-3 border-b border-[#2A3442] bg-[#141A22] flex items-center justify-between">
                   <span className="text-xs font-bold text-white uppercase tracking-wider">New Support Ticket</span>
                   <span className="text-[10px] font-mono text-slate-400">STATUS: ACTIVE</span>
-                </div>
+                </div>                <form onSubmit={handleFormSubmit} className="p-4 space-y-4">
+                  {statusSuccessMsg && (
+                    <div className="p-3 rounded border border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981] text-xs font-semibold flex items-center gap-2">
+                      <ShieldCheck className="h-4 w-4 shrink-0" />
+                      <span>{statusSuccessMsg}</span>
+                    </div>
+                  )}
 
-                <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
                       <label htmlFor="name-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Name</label>
                       <input
                         id="name-input"
                         type="text"
+                        required
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         placeholder="Jane Doe"
@@ -161,7 +196,8 @@ export default function ContactPage() {
                       <label htmlFor="email-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Address</label>
                       <input
                         id="email-input"
-                        type="text"
+                        type="email"
+                        required
                         value={formEmail}
                         onChange={(e) => setFormEmail(e.target.value)}
                         placeholder="jane@organization.com"
@@ -175,6 +211,7 @@ export default function ContactPage() {
                     <input
                       id="subject-input"
                       type="text"
+                      required
                       value={formSubject}
                       onChange={(e) => setFormSubject(e.target.value)}
                       placeholder="Enter support issue summary"
@@ -186,6 +223,7 @@ export default function ContactPage() {
                     <label htmlFor="message-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Message</label>
                     <textarea
                       id="message-input"
+                      required
                       value={formMessage}
                       rows={5}
                       onChange={(e) => setFormMessage(e.target.value)}
@@ -200,10 +238,15 @@ export default function ContactPage() {
                     </span>
                     <button
                       type="submit"
-                      className="h-8 px-4 rounded bg-[#3B82F6] text-xs font-bold text-white hover:bg-blue-600 active:scale-[0.99] transition-all flex items-center gap-1.5 select-none"
+                      disabled={submitting}
+                      className={`h-8 px-4 rounded text-xs font-bold text-white transition-all flex items-center gap-1.5 select-none ${
+                        submitting
+                          ? "bg-[#3B82F6]/60 cursor-not-allowed"
+                          : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                      }`}
                     >
-                      <Send className="h-3.5 w-3.5" />
-                      Submit Ticket
+                      <Send className={`h-3.5 w-3.5 ${submitting ? "animate-pulse" : ""}`} />
+                      {submitting ? "Sending..." : "Submit Ticket"}
                     </button>
                   </div>
                 </form>
