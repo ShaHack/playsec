@@ -6,7 +6,8 @@ import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, ChevronDown, Send, Check, AlertCircle, HelpCircle,
-  Mail, Clock, ShieldAlert, BookOpen, FileText, CheckCircle
+  Mail, Clock, ShieldCheck, BookOpen, FileText, CheckCircle,
+  Star, MessageSquare, LifeBuoy, Sparkles
 } from "lucide-react";
 
 interface FAQItem { id: number; question: string; answer: string; }
@@ -45,7 +46,7 @@ const FAQ_DATA: FAQItem[] = [
   { 
     id: 7,  
     question: "Can I suggest new topics or report incorrect information?", 
-    answer: "Yes. Submit suggestions, corrections, or content feedback through the Contact page. Every submission is reviewed by the PlaySec editorial team." 
+    answer: "Yes. Submit suggestions or feature requests through the Feedback form. Every submission is reviewed by the PlaySec editorial team." 
   },
   { 
     id: 8,  
@@ -55,12 +56,12 @@ const FAQ_DATA: FAQItem[] = [
   { 
     id: 9,  
     question: "How can I contact the PlaySec team?", 
-    answer: "Use the Contact page or the official PlaySec support email. Technical support, security reports, business enquiries, and general feedback are handled through email only." 
+    answer: "Use the Contact Support form in this center. Technical support, security reports, business enquiries, and general feedback are handled directly by our team." 
   },
   { 
     id: 10, 
     question: "Who is PlaySec designed for?", 
-    answer: "PlaySec is built for cybersecurity students, SOC analysts, penetration testers, blue team engineers, red team operators, incident responders, security researchers, and IT professionals seeking structured security education." 
+    answer: "PlaySec is built for cybersecurity students, SOC analysts, penetration testers, blue team engineers, red team operators, incident responders, security researchers, and IT professionals." 
   }
 ];
 
@@ -69,14 +70,27 @@ export default function CommunityPage() {
   const [faqSearch, setFaqSearch] = useState("");
   const [expandedFaqId, setExpandedFaqId] = useState<number | null>(null);
   
-  // Support & Feedback Form State
-  const [formType, setFormType] = useState<"Feedback" | "Support">("Support");
-  const [formName, setFormName] = useState("");
-  const [formEmail, setFormEmail] = useState("");
-  const [formSubject, setFormSubject] = useState("");
-  const [formMessage, setFormMessage] = useState("");
+  // Tab State: 'feedback' | 'support'
+  const [activeTab, setActiveTab] = useState<"feedback" | "support">("support");
+
+  // Feedback Form State
+  const [fbName, setFbName] = useState("");
+  const [fbEmail, setFbEmail] = useState("");
+  const [fbType, setFbType] = useState<"Suggestion" | "Feature Request" | "General Feedback" | "Compliment">("Suggestion");
+  const [fbRating, setFbRating] = useState<number>(5);
+  const [fbHoverRating, setFbHoverRating] = useState<number>(0);
+  const [fbMessage, setFbMessage] = useState("");
+
+  // Support Form State
+  const [spName, setSpName] = useState("");
+  const [spEmail, setSpEmail] = useState("");
+  const [spSubject, setSpSubject] = useState("");
+  const [spPriority, setSpPriority] = useState<"Low" | "Medium" | "High">("Medium");
+  const [spMessage, setSpMessage] = useState("");
+
+  // Status & Loading States
   const [submitting, setSubmitting] = useState(false);
-  const [statusSuccessMsg, setStatusSuccessMsg] = useState("");
+  const [successBanner, setSuccessBanner] = useState("");
   
   const [toast, setToast] = useState<{ show: boolean; msg: string; type: "success" | "error" }>({
     show: false,
@@ -99,29 +113,26 @@ export default function CommunityPage() {
     );
   }, [faqSearch]);
 
-  const handleFormSubmit = async (e: React.FormEvent) => {
+  // Submit Feedback Form
+  const handleFeedbackSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    setStatusSuccessMsg("");
+    setSuccessBanner("");
 
-    const nameVal = formName.trim();
-    const emailVal = formEmail.trim();
-    const subjectVal = formSubject.trim();
-    const messageVal = formMessage.trim();
-
-    if (!nameVal || !emailVal || !subjectVal || !messageVal) {
-      setToast({ show: true, msg: "Please fill in all required fields.", type: "error" });
+    const msgVal = fbMessage.trim();
+    if (!msgVal) {
+      setToast({ show: true, msg: "Please enter your feedback message.", type: "error" });
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+    if (msgVal.length < 15) {
+      setToast({ show: true, msg: "Feedback message must be at least 15 characters long.", type: "error" });
+      return;
+    }
+    if (msgVal.length > 3000) {
+      setToast({ show: true, msg: "Feedback message cannot exceed 3000 characters.", type: "error" });
+      return;
+    }
+    if (fbEmail.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(fbEmail.trim())) {
       setToast({ show: true, msg: "Please enter a valid email address.", type: "error" });
-      return;
-    }
-    if (messageVal.length < 15) {
-      setToast({ show: true, msg: "Message must be at least 15 characters long.", type: "error" });
-      return;
-    }
-    if (messageVal.length > 3000) {
-      setToast({ show: true, msg: "Message must not exceed 3000 characters.", type: "error" });
       return;
     }
 
@@ -132,34 +143,95 @@ export default function CommunityPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          formType,
-          name: formName.trim(),
-          email: formEmail.trim(),
-          subject: formSubject.trim(),
-          message: formMessage.trim(),
+          targetType: "feedback",
+          name: fbName.trim() || "Anonymous",
+          email: fbEmail.trim() || "",
+          feedbackType: fbType,
+          rating: fbRating,
+          message: msgVal,
         }),
       });
 
       const data = await res.json();
 
       if (!res.ok || data.error) {
-        setToast({ show: true, msg: data.error || "Unable to send your message. Please try again.", type: "error" });
+        setToast({ show: true, msg: data.error || "Unable to send your feedback. Please try again.", type: "error" });
         return;
       }
 
-      const successText = "Your message has been sent successfully.";
-      setStatusSuccessMsg(successText);
-      setToast({
-        show: true,
-        msg: successText,
-        type: "success",
-      });
-      setFormName("");
-      setFormEmail("");
-      setFormSubject("");
-      setFormMessage("");
+      const okMsg = "Thank you! Your feedback helps us improve PlaySec.";
+      setSuccessBanner(okMsg);
+      setToast({ show: true, msg: okMsg, type: "success" });
+      setFbName("");
+      setFbEmail("");
+      setFbMessage("");
+      setFbRating(5);
     } catch (err) {
-      setToast({ show: true, msg: "Unable to send your message. Please try again.", type: "error" });
+      setToast({ show: true, msg: "Unable to send your feedback. Please try again.", type: "error" });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Submit Contact Support Form
+  const handleSupportSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSuccessBanner("");
+
+    const nameVal = spName.trim();
+    const emailVal = spEmail.trim();
+    const subjectVal = spSubject.trim();
+    const messageVal = spMessage.trim();
+
+    if (!nameVal || !emailVal || !subjectVal || !messageVal) {
+      setToast({ show: true, msg: "Please fill in all required fields.", type: "error" });
+      return;
+    }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+      setToast({ show: true, msg: "Please enter a valid email address.", type: "error" });
+      return;
+    }
+    if (messageVal.length < 15) {
+      setToast({ show: true, msg: "Issue description must be at least 15 characters long.", type: "error" });
+      return;
+    }
+    if (messageVal.length > 3000) {
+      setToast({ show: true, msg: "Issue description cannot exceed 3000 characters.", type: "error" });
+      return;
+    }
+
+    setSubmitting(true);
+
+    try {
+      const res = await fetch("/api/contact", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          targetType: "support",
+          name: nameVal,
+          email: emailVal,
+          subject: subjectVal,
+          priority: spPriority,
+          message: messageVal,
+        }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok || data.error) {
+        setToast({ show: true, msg: data.error || "Unable to send your support request. Please try again.", type: "error" });
+        return;
+      }
+
+      const okMsg = "Your support request has been received. Our team will contact you soon.";
+      setSuccessBanner(okMsg);
+      setToast({ show: true, msg: okMsg, type: "success" });
+      setSpName("");
+      setSpEmail("");
+      setSpSubject("");
+      setSpMessage("");
+    } catch (err) {
+      setToast({ show: true, msg: "Unable to send your support request. Please try again.", type: "error" });
     } finally {
       setSubmitting(false);
     }
@@ -169,9 +241,9 @@ export default function CommunityPage() {
     <>
       <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
 
-      <main className="flex-1 text-[#F3F4F6] relative overflow-hidden select-text bg-[#0B0F14] pb-16 pt-8">
+      <main className="flex-1 text-[#F3F4F6] relative overflow-hidden select-text bg-[#0B0F14] pb-20 pt-8 min-h-screen">
         
-        {/* Subtle grid background */}
+        {/* Grid Background */}
         <div className="pointer-events-none fixed inset-0 z-0 bg-[#0B0F14]" />
         <div className="pointer-events-none fixed inset-0 z-0"
           style={{
@@ -202,109 +274,333 @@ export default function CommunityPage() {
           )}
         </AnimatePresence>
 
-        {/* ════════════════════════════════════════════ */}
-        {/* TWO-COLUMN ENTERPRISE LAYOUT                 */}
-        {/* ════════════════════════════════════════════ */}
-        <section className="relative z-10 mx-auto max-w-[1380px] px-6 lg:px-10 mt-6">
-          <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start">
+        {/* ── HEADER ── */}
+        <section className="relative z-10 mx-auto max-w-[1200px] px-6 text-center mb-10">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-1 rounded mb-4">
+            Support Center
+          </span>
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            Community Support
+          </h1>
+          <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#A8B3C5] max-w-xl mx-auto">
+            Share your ideas, suggestions, or contact the PlaySec team.
+          </p>
+        </section>
+
+        {/* ── MAIN CONTENT CONTAINER ── */}
+        <section className="relative z-10 mx-auto max-w-[1200px] px-6">
+          
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
             
-            {/* ── LEFT COLUMN (span 5): Hero, Support Card, FAQ quick links ── */}
-            <div className="lg:col-span-5 space-y-8 text-left">
+            {/* ── LEFT COLUMN: ENTERPRISE SUPPORT TABS & FORMS ── */}
+            <div className="lg:col-span-7 space-y-6">
               
-              {/* Left Aligned Community Hero */}
-              <div className="space-y-4">
-                <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-1 rounded">
-                  PlaySec Support Center
-                </span>
-                <h1 className="text-3xl font-extrabold text-white tracking-tight leading-tight uppercase">
-                  PLAYSEC COMMUNITY
-                </h1>
-                <h2 className="text-sm font-semibold text-slate-200 leading-normal">
-                  Professional support and documentation assistance for PlaySec users.
-                </h2>
-                <p className="text-xs sm:text-[13px] text-[#A8B3C5] leading-relaxed">
-                  Need help with Playbooks, Library resources, account issues or feedback? Contact our team directly by email.
-                </p>
-                
-                <div className="flex gap-3 pt-2 select-none">
-                  <button 
-                    onClick={() => document.getElementById("ticket-form")?.scrollIntoView({ behavior: "smooth" })}
-                    className="h-8 px-4 rounded bg-[#3B82F6] hover:bg-blue-600 text-xs font-bold text-white transition-all"
-                  >
-                    Contact Support
-                  </button>
-                  <button 
-                    onClick={() => document.getElementById("faq-section")?.scrollIntoView({ behavior: "smooth" })}
-                    className="h-8 px-4 rounded border border-[#2A3442] bg-[#141A22] hover:border-slate-500 text-xs font-bold text-white transition-all"
-                  >
-                    View FAQs
-                  </button>
-                </div>
+              {/* Tab Switcher: 💡 Feedback & 📩 Contact Support */}
+              <div className="flex border-b border-[#2A3442] bg-[#141A22] p-1 rounded-t border-t border-x select-none">
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab("feedback"); setSuccessBanner(""); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "feedback"
+                      ? "bg-[#3B82F6] text-white shadow-md"
+                      : "text-[#A8B3C5] hover:text-white hover:bg-[#0B0F14]/50"
+                  }`}
+                >
+                  <Sparkles className="h-4 w-4" />
+                  <span>💡 Feedback</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => { setActiveTab("support"); setSuccessBanner(""); }}
+                  className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded text-xs font-bold transition-all cursor-pointer ${
+                    activeTab === "support"
+                      ? "bg-[#3B82F6] text-white shadow-md"
+                      : "text-[#A8B3C5] hover:text-white hover:bg-[#0B0F14]/50"
+                  }`}
+                >
+                  <LifeBuoy className="h-4 w-4" />
+                  <span>📩 Contact Support</span>
+                </button>
               </div>
 
-              {/* Support Card (From Contact page) */}
-              <div className="rounded border border-[#2A3442] bg-[#141A22] p-5 space-y-4 shadow-sm">
-                <div className="flex items-center gap-2 pb-2 border-b border-[#2A3442]">
-                  <Mail className="h-4 w-4 text-[#3B82F6]" />
-                  <h3 className="text-xs font-bold text-white uppercase tracking-wider">Helpdesk Channels</h3>
-                </div>
-                
-                <div className="space-y-3.5 text-xs">
-                  <div>
-                    <span className="block text-[9px] font-bold uppercase text-slate-500">Technical Support</span>
-                    <a href="mailto:support@playsec.io" className="text-xs font-mono text-[#3B82F6] hover:underline">support@playsec.io</a>
-                    <span className="block text-[9px] text-[#A8B3C5] mt-0.5">Response SLA: 24-48 Hours</span>
-                  </div>
-                  <div>
-                    <span className="block text-[9px] font-bold uppercase text-slate-500">Security Reports</span>
-                    <a href="mailto:security@playsec.io" className="text-xs font-mono text-[#3B82F6] hover:underline">security@playsec.io</a>
-                  </div>
-                  <div>
-                    <span className="block text-[9px] font-bold uppercase text-slate-500">Business Enquiries</span>
-                    <a href="mailto:business@playsec.io" className="text-xs font-mono text-[#3B82F6] hover:underline">business@playsec.io</a>
-                  </div>
-                </div>
-              </div>
+              {/* Success Banner */}
+              {successBanner && (
+                <motion.div 
+                  initial={{ opacity: 0, y: -6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded border border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981] text-xs font-semibold flex items-center gap-2.5 shadow-sm"
+                >
+                  <CheckCircle className="h-4.5 w-4.5 shrink-0" />
+                  <span>{successBanner}</span>
+                </motion.div>
+              )}
 
-              {/* FAQ Quick Links */}
-              <div className="rounded border border-[#2A3442] bg-[#141A22] p-5 shadow-sm space-y-3">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-slate-500 border-b border-[#2A3442] pb-1.5">FAQ Shortcuts</span>
-                <div className="space-y-2 text-xs">
-                  {FAQ_DATA.slice(0, 3).map((faq) => (
+              {/* ── FORM 1: FEEDBACK ── */}
+              {activeTab === "feedback" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="rounded-b border border-[#2A3442] bg-[#141A22] p-6 shadow-sm space-y-5"
+                >
+                  <div className="pb-3 border-b border-[#2A3442]/60 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-extrabold text-white">Platform Feedback</h2>
+                      <p className="text-[11px] text-[#A8B3C5]">Help us shape the future of PlaySec learning tools.</p>
+                    </div>
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20">
+                      Community Driven
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleFeedbackSubmit} className="space-y-4">
+                    
+                    {/* Optional Name & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Name <span className="text-slate-500 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="text"
+                          value={fbName}
+                          onChange={(e) => setFbName(e.target.value)}
+                          placeholder="e.g. Alex Morgan"
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Email Address <span className="text-slate-500 font-normal">(Optional)</span>
+                        </label>
+                        <input
+                          type="email"
+                          value={fbEmail}
+                          onChange={(e) => setFbEmail(e.target.value)}
+                          placeholder="alex@organization.com"
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Feedback Type & Rating */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Feedback Type
+                        </label>
+                        <select
+                          value={fbType}
+                          onChange={(e) => setFbType(e.target.value as any)}
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                        >
+                          <option value="Suggestion">Suggestion</option>
+                          <option value="Feature Request">Feature Request</option>
+                          <option value="General Feedback">General Feedback</option>
+                          <option value="Compliment">Compliment</option>
+                        </select>
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          ⭐ Rating (1–5 Stars)
+                        </label>
+                        <div className="flex items-center gap-1.5 h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14]">
+                          {[1, 2, 3, 4, 5].map((star) => (
+                            <button
+                              key={star}
+                              type="button"
+                              onClick={() => setFbRating(star)}
+                              onMouseEnter={() => setFbHoverRating(star)}
+                              onMouseLeave={() => setFbHoverRating(0)}
+                              className="p-1 text-slate-400 hover:scale-110 transition-transform cursor-pointer focus:outline-none"
+                            >
+                              <Star
+                                className={`h-4 w-4 ${
+                                  (fbHoverRating || fbRating) >= star
+                                    ? "fill-amber-400 text-amber-400"
+                                    : "text-slate-600"
+                                }`}
+                              />
+                            </button>
+                          ))}
+                          <span className="ml-auto text-[10px] font-mono text-slate-400">
+                            {fbRating}/5
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Message textarea */}
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Message <span className="text-emerald-400">*</span>
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={fbMessage}
+                        onChange={(e) => setFbMessage(e.target.value)}
+                        placeholder="Tell us how we can improve PlaySec..."
+                        className="w-full p-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none resize-none"
+                      />
+                    </div>
+
                     <button
-                      key={faq.id}
-                      onClick={() => {
-                        setExpandedFaqId(faq.id);
-                        document.getElementById("faq-section")?.scrollIntoView({ behavior: "smooth" });
-                      }}
-                      className="w-full text-left text-[#A8B3C5] hover:text-white transition-colors flex items-center gap-1.5"
+                      type="submit"
+                      disabled={submitting}
+                      className={`w-full h-10 rounded text-xs font-bold text-white transition-all flex items-center justify-center gap-2 select-none ${
+                        submitting
+                          ? "bg-[#3B82F6]/60 cursor-not-allowed"
+                          : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                      }`}
                     >
-                      <span className="text-[#3B82F6]">•</span>
-                      <span className="truncate">{faq.question}</span>
+                      <Sparkles className={`h-4 w-4 ${submitting ? "animate-spin" : ""}`} />
+                      <span>{submitting ? "Submitting Feedback..." : "💡 Submit Feedback"}</span>
                     </button>
-                  ))}
-                </div>
-              </div>
+
+                  </form>
+                </motion.div>
+              )}
+
+              {/* ── FORM 2: CONTACT SUPPORT ── */}
+              {activeTab === "support" && (
+                <motion.div
+                  initial={{ opacity: 0, y: 6 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.15 }}
+                  className="rounded-b border border-[#2A3442] bg-[#141A22] p-6 shadow-sm space-y-5"
+                >
+                  <div className="pb-3 border-b border-[#2A3442]/60 flex items-center justify-between">
+                    <div>
+                      <h2 className="text-sm font-extrabold text-white">Technical Support Request</h2>
+                      <p className="text-[11px] text-[#A8B3C5]">Direct assistance from the PlaySec engineering desk.</p>
+                    </div>
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded border border-blue-400/20">
+                      SLA: 24h Response
+                    </span>
+                  </div>
+
+                  <form onSubmit={handleSupportSubmit} className="space-y-4">
+                    
+                    {/* Name & Email */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Name <span className="text-emerald-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={spName}
+                          onChange={(e) => setSpName(e.target.value)}
+                          placeholder="Jane Doe"
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Email Address <span className="text-emerald-400">*</span>
+                        </label>
+                        <input
+                          type="email"
+                          required
+                          value={spEmail}
+                          onChange={(e) => setSpEmail(e.target.value)}
+                          placeholder="jane@organization.com"
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                        />
+                      </div>
+                    </div>
+
+                    {/* Subject & Priority Dropdown */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                      <div className="sm:col-span-2 space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Subject <span className="text-emerald-400">*</span>
+                        </label>
+                        <input
+                          type="text"
+                          required
+                          value={spSubject}
+                          onChange={(e) => setSpSubject(e.target.value)}
+                          placeholder="Brief summary of support inquiry"
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          Priority
+                        </label>
+                        <select
+                          value={spPriority}
+                          onChange={(e) => setSpPriority(e.target.value as any)}
+                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                        >
+                          <option value="Low">Low</option>
+                          <option value="Medium">Medium</option>
+                          <option value="High">High</option>
+                        </select>
+                      </div>
+                    </div>
+
+                    {/* Message textarea */}
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        Message <span className="text-emerald-400">*</span>
+                      </label>
+                      <textarea
+                        required
+                        rows={4}
+                        value={spMessage}
+                        onChange={(e) => setSpMessage(e.target.value)}
+                        placeholder="Describe your issue in detail..."
+                        className="w-full p-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none resize-none"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      disabled={submitting}
+                      className={`w-full h-10 rounded text-xs font-bold text-white transition-all flex items-center justify-center gap-2 select-none ${
+                        submitting
+                          ? "bg-[#3B82F6]/60 cursor-not-allowed"
+                          : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                      }`}
+                    >
+                      <Send className={`h-4 w-4 ${submitting ? "animate-pulse" : ""}`} />
+                      <span>{submitting ? "Submitting Request..." : "📩 Contact Support"}</span>
+                    </button>
+
+                  </form>
+                </motion.div>
+              )}
 
             </div>
 
-            {/* ── RIGHT COLUMN (span 7): FAQ Search, 10 FAQ Accordion, Ticket Form ── */}
-            <div id="faq-section" className="lg:col-span-7 space-y-8">
+            {/* ── RIGHT COLUMN: FAQ ACCORDION ── */}
+            <div className="lg:col-span-5 space-y-6">
               
-              {/* FAQ Section */}
-              <div className="rounded border border-[#2A3442] bg-[#141A22] p-6 shadow-sm">
-                <div className="flex items-center justify-between mb-4 pb-2 border-b border-[#2A3442]">
-                  <h3 className="text-sm font-bold text-white uppercase tracking-wider">Frequently Asked Questions</h3>
-                  <HelpCircle className="h-4.5 w-4.5 text-[#3B82F6]" />
+              <div className="rounded border border-[#2A3442] bg-[#141A22] p-5 shadow-sm space-y-4">
+                <div className="flex items-center justify-between border-b border-[#2A3442]/60 pb-3">
+                  <div className="flex items-center gap-2">
+                    <HelpCircle className="h-4 w-4 text-[#3B82F6]" />
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-white">Frequently Asked Questions</h3>
+                  </div>
+                  <span className="text-[10px] text-slate-500 font-mono">10 Q&A</span>
                 </div>
 
                 {/* FAQ Search */}
-                <div className="relative mb-4">
+                <div className="relative">
                   <input
                     type="text"
                     value={faqSearch}
                     onChange={(e) => setFaqSearch(e.target.value)}
-                    placeholder="Search FAQs..."
+                    placeholder="Search support documentation & FAQs..."
                     className="w-full h-9 pl-3 pr-8 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-500 focus:border-[#3B82F6] focus:outline-none"
                   />
                   {faqSearch && (
@@ -314,8 +610,8 @@ export default function CommunityPage() {
                   )}
                 </div>
 
-                {/* Accordion List (one open at a time) */}
-                <div className="space-y-2">
+                {/* Accordion List */}
+                <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
                   {filteredFaqs.length > 0 ? (
                     filteredFaqs.map((faq) => {
                       const isExpanded = expandedFaqId === faq.id;
@@ -323,10 +619,10 @@ export default function CommunityPage() {
                         <div key={faq.id} className="border border-[#2A3442] rounded overflow-hidden">
                           <button
                             onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                            className="w-full flex items-center justify-between px-4 py-2.5 text-left bg-[#0B0F14] text-xs font-bold text-slate-200 hover:text-white"
+                            className="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#0B0F14] text-xs font-bold text-slate-200 hover:text-white"
                           >
                             <span>{faq.question}</span>
-                            <ChevronDown className={`h-4 w-4 transition-transform duration-150 ${isExpanded ? "rotate-180 text-[#3B82F6]" : "text-slate-400"}`} />
+                            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-150 ${isExpanded ? "rotate-180 text-[#3B82F6]" : "text-slate-400"}`} />
                           </button>
                           
                           <AnimatePresence initial={false}>
@@ -336,7 +632,7 @@ export default function CommunityPage() {
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.15 }}
-                                className="px-4 py-3 bg-[#141A22]/50 border-t border-[#2A3442]/40 text-xs text-[#A8B3C5] leading-relaxed"
+                                className="px-3.5 py-2.5 bg-[#141A22]/50 border-t border-[#2A3442]/40 text-xs text-[#A8B3C5] leading-relaxed"
                               >
                                 {faq.answer}
                               </motion.div>
@@ -351,115 +647,10 @@ export default function CommunityPage() {
                 </div>
               </div>
 
-              {/* Support & Feedback Ticket Form */}
-              <div id="ticket-form" className="rounded border border-[#2A3442] bg-[#141A22] shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-[#2A3442] bg-[#141A22] flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <button
-                      type="button"
-                      onClick={() => setFormType("Support")}
-                      className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                        formType === "Support"
-                          ? "bg-[#3B82F6] text-white"
-                          : "bg-[#0B0F14] text-[#A8B3C5] hover:text-white border border-[#2A3442]"
-                      }`}
-                    >
-                      Contact Support
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setFormType("Feedback")}
-                      className={`px-2.5 py-1 rounded text-[10px] font-bold transition-all cursor-pointer ${
-                        formType === "Feedback"
-                          ? "bg-[#3B82F6] text-white"
-                          : "bg-[#0B0F14] text-[#A8B3C5] hover:text-white border border-[#2A3442]"
-                      }`}
-                    >
-                      Feedback
-                    </button>
-                  </div>
-                  <span className="text-[10px] font-mono text-slate-500">STATUS: ACTIVE</span>
-                </div>
-
-                <form onSubmit={handleFormSubmit} className="p-5 space-y-4">
-                  {statusSuccessMsg && (
-                    <div className="p-3 rounded border border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981] text-xs font-semibold flex items-center gap-2">
-                      <CheckCircle className="h-4 w-4 shrink-0" />
-                      <span>{statusSuccessMsg}</span>
-                    </div>
-                  )}
-
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    <div className="space-y-1">
-                      <label htmlFor="name-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Name</label>
-                      <input
-                        id="name-field"
-                        type="text"
-                        required
-                        value={formName}
-                        onChange={(e) => setFormName(e.target.value)}
-                        placeholder="Jane Doe"
-                        className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none"
-                      />
-                    </div>
-                    <div className="space-y-1">
-                      <label htmlFor="email-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Address</label>
-                      <input
-                        id="email-field"
-                        type="email"
-                        required
-                        value={formEmail}
-                        onChange={(e) => setFormEmail(e.target.value)}
-                        placeholder="jane@organization.com"
-                        className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label htmlFor="subject-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Subject</label>
-                    <input
-                      id="subject-field"
-                      type="text"
-                      required
-                      value={formSubject}
-                      onChange={(e) => setFormSubject(e.target.value)}
-                      placeholder={formType === "Feedback" ? "Enter your platform feedback subject" : "Enter support issue summary"}
-                      className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none"
-                    />
-                  </div>
-
-                  <div className="space-y-1">
-                    <label htmlFor="desc-field" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Message Description</label>
-                    <textarea
-                      id="desc-field"
-                      required
-                      value={formMessage}
-                      rows={4}
-                      onChange={(e) => setFormMessage(e.target.value)}
-                      placeholder={formType === "Feedback" ? "Provide detailed feedback about PlaySec features..." : "Provide full description of your support request..."}
-                      className="w-full p-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none resize-none"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={submitting}
-                    className={`w-full h-9 rounded text-xs font-bold text-white transition-all flex items-center justify-center gap-1.5 select-none ${
-                      submitting
-                        ? "bg-[#3B82F6]/60 cursor-not-allowed"
-                        : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
-                    }`}
-                  >
-                    <Send className={`h-4 w-4 ${submitting ? "animate-pulse" : ""}`} />
-                    {submitting ? "Sending message..." : `Submit ${formType}`}
-                  </button>
-                </form>
-              </div>
-
             </div>
 
           </div>
+
         </section>
 
       </main>
