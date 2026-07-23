@@ -68,7 +68,7 @@ export default function AdminDashboard() {
       if (authLoading) return;
 
       if (!isLoggedIn || !user?.email) {
-        if (mounted) setIsAdmin(null);
+        router.replace("/");
         return;
       }
 
@@ -80,17 +80,17 @@ export default function AdminDashboard() {
         if (authorized) {
           setIsAdmin(true);
         } else {
-          // Unauthorized account: Revoke session and redirect to home page
+          // Unauthorized account: Revoke session and redirect to home silently
           setIsAdmin(false);
           await supabase.auth.signOut().catch(() => {});
-          router.replace("/?error=unauthorized");
+          router.replace("/");
         }
       } catch (err) {
         console.error("Error verifying admin credentials:", err);
         if (!mounted) return;
         setIsAdmin(false);
         await supabase.auth.signOut().catch(() => {});
-        router.replace("/?error=unauthorized");
+        router.replace("/");
       }
     }
     
@@ -160,10 +160,8 @@ export default function AdminDashboard() {
     try {
       await assertAdminAuthorization();
     } catch (err: unknown) {
-      const message = err instanceof Error ? err.message : "Access Denied";
-      setStatusMsg({ type: "error", text: message });
-      router.replace("/?error=unauthorized");
-      throw new Error(message);
+      router.replace("/");
+      throw new Error("Access Denied");
     }
 
     const fileExt = (file.name.split(".").pop() || "").toLowerCase();
@@ -207,8 +205,7 @@ export default function AdminDashboard() {
     try {
       await assertAdminAuthorization();
     } catch (err: unknown) {
-      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Access Denied" });
-      router.replace("/?error=unauthorized");
+      router.replace("/");
       return;
     }
 
@@ -353,8 +350,7 @@ export default function AdminDashboard() {
     try {
       await assertAdminAuthorization();
     } catch (err: unknown) {
-      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Access Denied" });
-      router.replace("/?error=unauthorized");
+      router.replace("/");
       return;
     }
 
@@ -414,88 +410,9 @@ export default function AdminDashboard() {
     }
   };
 
-  // 1. Loading & Verification State (Shows friendly animated spinner during session check)
-  if (authLoading || (isLoggedIn && isAdmin === null)) {
-    return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center px-6 relative overflow-hidden select-none">
-          <div 
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{
-              opacity: 0.015,
-              backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
-              backgroundSize: "56px 56px",
-            }} 
-          />
-
-          <div className="relative z-10 text-center max-w-sm mx-auto p-8 rounded-xl border border-[#2A3442] bg-[#141A22]/80 backdrop-blur-md shadow-2xl">
-            <div className="mx-auto mb-5 flex items-center justify-center">
-              <PlaySecLogo size={56} className="animate-pulse" />
-            </div>
-            <Loader className="animate-spin h-6 w-6 text-[#3B82F6] mx-auto mb-3" />
-            <h2 className="text-sm font-bold text-white mb-1">Verifying Administrative Access</h2>
-            <p className="text-xs text-[#A8B3C5] leading-relaxed">
-              Validating user credentials against the SecOps admin database...
-            </p>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  // 2. Unauthenticated State: Show Professional Login Card
-  if (!isLoggedIn) {
-    return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center px-6 relative overflow-hidden select-none">
-          <div 
-            className="pointer-events-none absolute inset-0 z-0"
-            style={{
-              opacity: 0.015,
-              backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
-              backgroundSize: "56px 56px",
-            }} 
-          />
-
-          <div className="relative z-10 max-w-md w-full rounded-xl border border-[#2A3442] bg-[#141A22] p-8 text-center shadow-2xl">
-            <div className="flex items-center justify-center mx-auto mb-5">
-              <PlaySecLogo size={52} />
-            </div>
-            <h1 className="text-xl font-extrabold text-white mb-2 tracking-tight">PlaySec CMS Admin</h1>
-            <p className="text-xs text-[#A8B3C5] mb-6 leading-relaxed">
-              Authenticate with your authorized Google account to access the Content Management System.
-            </p>
-            <button
-              onClick={loginWithGoogle}
-              className="w-full flex h-11 items-center justify-center gap-2 px-5 rounded-lg bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs tracking-wide transition-all shadow-lg cursor-pointer active:scale-[0.98]"
-            >
-              <Shield className="h-4 w-4" />
-              <span>Continue with Google</span>
-            </button>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  // 3. Unauthorized State: Redirecting Screen
-  if (isAdmin === false) {
-    return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-slate-350 select-none">
-          <div className="text-center">
-            <Loader className="animate-spin h-6 w-6 text-[#EF4444] mx-auto mb-3" />
-            <p className="text-xs font-semibold text-slate-300">Access Denied. Redirecting to home...</p>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
+  // Silent redirect state: Render absolutely nothing while redirecting or verifying
+  if (authLoading || (isLoggedIn && isAdmin === null) || !isLoggedIn || isAdmin === false) {
+    return null;
   }
 
   return (
