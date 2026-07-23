@@ -9,6 +9,7 @@ import { playbookService } from "@/services/playbookService";
 import { AudioPlaybook } from "@/types/playbook";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
+import AuthModal from "@/components/AuthModal";
 import { 
   Play, Pause, Volume2, Bookmark, Share2, 
   ChevronRight, Calendar, Globe,
@@ -27,8 +28,20 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   
-  const { isLoggedIn, loginWithGoogle } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [toastMsg, setToastMsg] = useState("");
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pendingAction: any;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    pendingAction: null,
+  });
   const [selectedLanguage, setSelectedLanguage] = useState<"English" | "Tamil" | "Hindi">(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("playsec_audio_lang");
@@ -71,6 +84,36 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     }
     loadPlaybook();
   }, [slug]);
+
+  // Auto-resume pending action after authentication
+  useEffect(() => {
+    if (!isLoggedIn || !playbook) return;
+    try {
+      const saved = localStorage.getItem("playsec_pending_action");
+      if (saved) {
+        const action = JSON.parse(saved);
+        if (action.type === "play" && action.slug === slug) {
+          localStorage.removeItem("playsec_pending_action");
+          const timer = setTimeout(() => {
+            setIsPlaying(true);
+            setToastMsg("Welcome! Playback started automatically.");
+            setTimeout(() => setToastMsg(""), 3500);
+          }, 0);
+          return () => clearTimeout(timer);
+        } else if (action.type === "download" && action.url) {
+          localStorage.removeItem("playsec_pending_action");
+          window.open(action.url, "_blank");
+          const timer = setTimeout(() => {
+            setToastMsg("Welcome! Download started automatically.");
+            setTimeout(() => setToastMsg(""), 3500);
+          }, 0);
+          return () => clearTimeout(timer);
+        }
+      }
+    } catch {
+      // Silently ignore storage errors
+    }
+  }, [isLoggedIn, playbook, slug]);
 
   const handleLanguageChange = (lang: "English" | "Tamil" | "Hindi") => {
     setSelectedLanguage(lang);
@@ -408,12 +451,17 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                         <button 
                           onClick={() => {
                             if (!isLoggedIn) {
-                              loginWithGoogle();
+                              setAuthModal({
+                                isOpen: true,
+                                title: "Sign in required to play audio",
+                                message: "Please sign in with Google to stream full Audio Playbooks and sync your playback progress.",
+                                pendingAction: { type: "play", slug },
+                              });
                               return;
                             }
                             setIsPlaying(prev => !prev);
                           }}
-                          className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 text-white flex items-center justify-center shadow-none transition-all focus:outline-none"
+                          className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 text-white flex items-center justify-center shadow-none transition-all focus:outline-none cursor-pointer"
                           aria-label={isPlaying ? "Pause audio playback" : "Play audio playback"}
                         >
                           {isPlaying ? <Pause className="h-4 w-4 fill-white" /> : <Play className="h-4 w-4 fill-white ml-0.5" />}
@@ -463,10 +511,6 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                   {/* Download button */}
                   <button
                     onClick={() => {
-                      if (!isLoggedIn) {
-                        loginWithGoogle();
-                        return;
-                      }
                       const availableLanguages = playbook.languages && playbook.languages.length > 0
                         ? playbook.languages
                         : [
@@ -482,9 +526,20 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                       const downloadUrl = currentTrack?.download_url || currentTrack?.audio_url || playbook.audio_url;
 
                       if (!downloadUrl) return;
+
+                      if (!isLoggedIn) {
+                        setAuthModal({
+                          isOpen: true,
+                          title: "Sign in required to download file",
+                          message: "Please sign in with Google to download Audio Playbooks and security resources.",
+                          pendingAction: { type: "download", url: downloadUrl, slug },
+                        });
+                        return;
+                      }
+
                       window.open(downloadUrl, "_blank");
                     }}
-                    className="flex h-8 items-center gap-1.5 px-3 rounded border border-[#2A3442] bg-[#0B0F14] hover:border-slate-500 hover:text-white text-[#F3F4F6] transition-all select-none"
+                    className="flex h-8 items-center gap-1.5 px-3 rounded border border-[#2A3442] bg-[#0B0F14] hover:border-slate-500 hover:text-white text-[#F3F4F6] transition-all select-none cursor-pointer"
                   >
                     <Download className="h-4 w-4" />
                     <span>Download {selectedLanguage} MP3</span>
@@ -568,6 +623,14 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
         </div>
       </main>
+
+      <AuthModal
+        isOpen={authModal.isOpen}
+        onClose={() => setAuthModal((p) => ({ ...p, isOpen: false }))}
+        title={authModal.title}
+        message={authModal.message}
+        pendingAction={authModal.pendingAction}
+      />
       
       <Footer />
     </>

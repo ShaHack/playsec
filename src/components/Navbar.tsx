@@ -12,6 +12,7 @@ import { AudioPlaybook } from "@/types/playbook";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import PlaySecLogo from "@/components/PlaySecLogo";
+import LogoutModal from "@/components/LogoutModal";
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -23,12 +24,13 @@ export default function Navbar() {
   const [searchQuery, setSearchQuery] = useState("");
   const [isFocused, setIsFocused] = useState(false);
   
-  // Mega Menu State
+  // Mega Menu & Modal States
   const [isMegaMenuOpen, setIsMegaMenuOpen] = useState(false);
   const [searchResults, setSearchResults] = useState<AudioPlaybook[]>([]);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isMobileLibraryOpen, setIsMobileLibraryOpen] = useState(false);
   const [isProfileMenuOpen, setIsProfileMenuOpen] = useState(false);
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   useEffect(() => {
     function handleOutsideClick(e: MouseEvent) {
@@ -344,7 +346,7 @@ export default function Navbar() {
                   >
                     <button
                       onClick={() => {
-                        logout();
+                        setIsLogoutModalOpen(true);
                         setIsProfileMenuOpen(false);
                       }}
                       className="w-full text-left px-2.5 py-1.5 rounded hover:bg-[#2A3442] text-xs font-bold text-[#EF4444] transition-colors cursor-pointer"
@@ -354,6 +356,11 @@ export default function Navbar() {
                   </motion.div>
                 )}
               </AnimatePresence>
+              <LogoutModal
+                isOpen={isLogoutModalOpen}
+                onClose={() => setIsLogoutModalOpen(false)}
+                onConfirm={logout}
+              />
             </div>
           ) : (
             <button

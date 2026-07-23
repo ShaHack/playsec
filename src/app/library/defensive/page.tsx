@@ -7,9 +7,10 @@ import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
 import { Search, X, BookOpen, ExternalLink, Download, FileText, Bookmark, Calendar, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import AuthModal from "@/components/AuthModal";
 
 export default function DefensiveLibrary() {
-  const { isLoggedIn, loginWithGoogle } = useAuth();
+  const { isLoggedIn } = useAuth();
   const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
@@ -17,6 +18,35 @@ export default function DefensiveLibrary() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pendingAction: any;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    pendingAction: null,
+  });
+
+  // Auto-resume pending download after login
+  useEffect(() => {
+    if (!isLoggedIn) return;
+    try {
+      const saved = localStorage.getItem("playsec_pending_action");
+      if (saved) {
+        const action = JSON.parse(saved);
+        if (action.type === "download" && action.url) {
+          localStorage.removeItem("playsec_pending_action");
+          window.open(action.url, "_blank");
+        }
+      }
+    } catch {
+      // Silently ignore storage parse errors
+    }
+  }, [isLoggedIn]);
 
   useEffect(() => {
     async function loadData() {
@@ -48,7 +78,12 @@ export default function DefensiveLibrary() {
 
   const handleBookmarkToggle = (id: string) => {
     if (!isLoggedIn) {
-      loginWithGoogle();
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to bookmark",
+        message: "Please sign in with Google to save resources to your bookmarks.",
+        pendingAction: null,
+      });
       return;
     }
     setBookmarkedIds((prev) => 
@@ -216,12 +251,17 @@ export default function DefensiveLibrary() {
                             onClick={(e) => {
                               if (!isLoggedIn) {
                                 e.preventDefault();
-                                loginWithGoogle();
+                                setAuthModal({
+                                  isOpen: true,
+                                  title: "Sign in required to view file",
+                                  message: "Please sign in with Google to view and download security resources.",
+                                  pendingAction: { type: "download", url: item.file_url, title: item.title },
+                                });
                               }
                             }}
                             target={isLoggedIn ? "_blank" : undefined}
                             rel="noopener noreferrer"
-                            className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-[#3B82F6] hover:border-slate-500 flex items-center gap-1.5"
+                            className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-[#3B82F6] hover:border-slate-500 flex items-center gap-1.5 cursor-pointer"
                           >
                             <ExternalLink className="h-3.5 w-3.5" />
                             Preview
@@ -233,22 +273,38 @@ export default function DefensiveLibrary() {
                             onClick={(e) => {
                               if (!isLoggedIn) {
                                 e.preventDefault();
-                                loginWithGoogle();
+                                setAuthModal({
+                                  isOpen: true,
+                                  title: "Sign in required to download file",
+                                  message: "Please sign in with Google to download security resources and guides.",
+                                  pendingAction: { type: "download", url: item.file_url, title: item.title },
+                                });
                                 return;
                               }
                               if (item.file_url.startsWith("http")) return;
                               e.preventDefault();
-                              alert(`Downloading document: ${item.title}...`);
+                              window.open(item.file_url, "_blank");
                             }}
-                            className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-slate-350 hover:text-white hover:border-slate-500 flex items-center gap-1.5"
+                            className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-slate-350 hover:text-white hover:border-slate-500 flex items-center gap-1.5 cursor-pointer"
                           >
                             <Download className="h-3.5 w-3.5" />
                             Download
                           </a>
 
                           <button
-                            onClick={() => handleBookmarkToggle(item.id)}
-                            className={`h-7 w-7 rounded border flex items-center justify-center transition-all ${
+                            onClick={() => {
+                              if (!isLoggedIn) {
+                                setAuthModal({
+                                  isOpen: true,
+                                  title: "Sign in required to bookmark",
+                                  message: "Please sign in with Google to save resources to your bookmarks.",
+                                  pendingAction: null,
+                                });
+                                return;
+                              }
+                              handleBookmarkToggle(item.id);
+                            }}
+                            className={`h-7 w-7 rounded border flex items-center justify-center transition-all cursor-pointer ${
                               isBookmarked 
                                 ? "bg-[#3B82F6]/15 border-[#3B82F6] text-[#3B82F6]"
                                 : "bg-[#0B0F14] border-[#2A3442] text-slate-400 hover:text-white"
@@ -277,6 +333,14 @@ export default function DefensiveLibrary() {
 
         </div>
       </main>
+
+      <AuthModal
+        isOpen={authModal.isOpen}
+        onClose={() => setAuthModal((p) => ({ ...p, isOpen: false }))}
+        title={authModal.title}
+        message={authModal.message}
+        pendingAction={authModal.pendingAction}
+      />
 
       <Footer />
     </>

@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Mail, Clock, Send, ShieldCheck, Check, AlertCircle, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function ContactPage() {
+  const { user, isLoggedIn, loginWithGoogle } = useAuth();
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formSubject, setFormSubject] = useState("");
@@ -18,6 +20,17 @@ export default function ContactPage() {
     msg: "",
     type: "success",
   });
+
+  useEffect(() => {
+    if (!user) return;
+    const email = user.email || "";
+    const name = user.user_metadata?.full_name || "";
+    const timer = setTimeout(() => {
+      setFormEmail((prev) => prev || email);
+      setFormName((prev) => prev || name);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [user]);
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,16 +165,8 @@ export default function ContactPage() {
                 
                 <div className="space-y-3">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase text-slate-500">Support Desk</span>
-                    <a href="mailto:support@playsec.io" className="text-xs font-mono text-[#F3F4F6] hover:text-[#3B82F6] transition-colors">support@playsec.io</a>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase text-slate-500">Business &amp; Partnerships</span>
-                    <a href="mailto:business@playsec.io" className="text-xs font-mono text-[#F3F4F6] hover:text-[#3B82F6] transition-colors">business@playsec.io</a>
-                  </div>
-                  <div>
-                    <span className="block text-[10px] font-bold uppercase text-slate-500">Security Reports</span>
-                    <a href="mailto:security@playsec.io" className="text-xs font-mono text-[#F3F4F6] hover:text-[#3B82F6] transition-colors">security@playsec.io</a>
+                    <span className="block text-[10px] font-bold uppercase text-slate-500">PlaySec Support Team</span>
+                    <a href="mailto:playsec.platform@gmail.com" className="text-xs font-mono text-[#F3F4F6] hover:text-[#3B82F6] transition-colors">playsec.platform@gmail.com</a>
                   </div>
                 </div>
               </div>
@@ -244,16 +249,32 @@ export default function ContactPage() {
                     />
                   </div>
 
+                  {!isLoggedIn && (
+                    <div className="p-3 rounded border border-[#2A3442] bg-[#0B0F14] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                      <span className="text-[#A8B3C5]">Please sign in to submit support request.</span>
+                      <button
+                        type="button"
+                        onClick={loginWithGoogle}
+                        className="px-3.5 py-1.5 rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
+                      >
+                        <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current shrink-0" aria-hidden="true">
+                          <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.438a6.445 6.445 0 016.437-6.437c1.558 0 2.978.557 4.095 1.486L21.2 4.135C19.268 2.502 16.742 1.5 12.24 1.5c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5c5.385 0 10.07-3.793 10.07-10.5 0-.66-.06-1.285-.2-1.715H12.24z"/>
+                        </svg>
+                        <span>Sign in with Google</span>
+                      </button>
+                    </div>
+                  )}
+
                   <div className="flex items-center justify-between pt-1">
                     <span className="text-[10px] text-slate-500 font-mono">
                       SECURE CHANNEL ACTIVE
                     </span>
                     <button
                       type="submit"
-                      disabled={submitting}
+                      disabled={submitting || !isLoggedIn}
                       className={`h-8 px-4 rounded text-xs font-bold text-white transition-all flex items-center gap-1.5 select-none ${
-                        submitting
-                          ? "bg-[#3B82F6]/60 cursor-not-allowed"
+                        submitting || !isLoggedIn
+                          ? "bg-[#3B82F6]/40 text-slate-500 cursor-not-allowed border border-[#2A3442]"
                           : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
                       }`}
                     >

@@ -27,7 +27,7 @@ export default function PrivacyPage() {
       title: "Your Rights & Contact",
       items: [
         { label: "User Rights", desc: "You maintain the right to review, update, or request deletion of account records. Send request forms to the privacy coordinator." },
-        { label: "Contact Regarding Privacy", desc: "For security audit reports or privacy inquiries, contact the desk directly at privacy@playsec.io." },
+        { label: "Contact Regarding Privacy", desc: "For security audit reports or privacy inquiries, contact the PlaySec Support Team directly at playsec.platform@gmail.com." },
       ],
     },
   ];
