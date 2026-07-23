@@ -103,12 +103,25 @@ export default function CommunityPage() {
     e.preventDefault();
     setStatusSuccessMsg("");
 
-    if (!formName.trim() || !formEmail.trim() || !formSubject.trim() || !formMessage.trim()) {
-      setToast({ show: true, msg: "Please fill in all fields before sending.", type: "error" });
+    const nameVal = formName.trim();
+    const emailVal = formEmail.trim();
+    const subjectVal = formSubject.trim();
+    const messageVal = formMessage.trim();
+
+    if (!nameVal || !emailVal || !subjectVal || !messageVal) {
+      setToast({ show: true, msg: "Please fill in all required fields.", type: "error" });
       return;
     }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formEmail)) {
-      setToast({ show: true, msg: "Please provide a valid email address.", type: "error" });
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailVal)) {
+      setToast({ show: true, msg: "Please enter a valid email address.", type: "error" });
+      return;
+    }
+    if (messageVal.length < 15) {
+      setToast({ show: true, msg: "Message must be at least 15 characters long.", type: "error" });
+      return;
+    }
+    if (messageVal.length > 3000) {
+      setToast({ show: true, msg: "Message must not exceed 3000 characters.", type: "error" });
       return;
     }
 
