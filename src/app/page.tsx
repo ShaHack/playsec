@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -10,14 +10,29 @@ import {
   Award,
   Users,
   ChevronRight,
+  AlertCircle,
+  X
 } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [unauthorizedError, setUnauthorizedError] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== "undefined") {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get("error") === "unauthorized") {
+        setUnauthorizedError(true);
+        // Clean URL parameters cleanly
+        window.history.replaceState({}, document.title, window.location.pathname);
+      }
+    }
+  }, []);
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
+      <Navbar />
 
       <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA]">
         
@@ -95,6 +110,33 @@ export default function Home() {
         </section>
 
       </main>
+
+      <AnimatePresence>
+        {unauthorizedError && (
+          <motion.div
+            initial={{ opacity: 0, y: 50 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 50 }}
+            className="fixed bottom-6 right-6 z-50 flex items-center gap-3 p-4 rounded border border-[#EF4444]/30 bg-[#141A22] text-[#F3F4F6] shadow-2xl max-w-sm select-none"
+          >
+            <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20">
+              <AlertCircle className="h-4 w-4" />
+            </div>
+            <div className="flex-1">
+              <p className="text-xs font-bold leading-normal">
+                You don't have permission to access the Admin Dashboard.
+              </p>
+            </div>
+            <button 
+              onClick={() => setUnauthorizedError(false)} 
+              className="text-[#A8B3C5] hover:text-white"
+              aria-label="Close alert"
+            >
+              <X className="h-4 w-4" />
+            </button>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <Footer />
     </>

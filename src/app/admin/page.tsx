@@ -10,10 +10,57 @@ import {
   CheckCircle, AlertCircle, Loader, Plus, ArrowLeft 
 } from "lucide-react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 
 export default function AdminDashboard() {
   const { isLoggedIn, user, loading: authLoading, loginWithGoogle } = useAuth();
+  const router = useRouter();
   
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [adminCheckLoading, setAdminCheckLoading] = useState(false);
+
+  useEffect(() => {
+    async function checkAdminStatus() {
+      if (!isLoggedIn || !user?.email) {
+        setIsAdmin(false);
+        if (!authLoading && !isLoggedIn) {
+          router.push("/");
+        }
+        return;
+      }
+      setAdminCheckLoading(true);
+      try {
+        const { data, error } = await supabase
+          .from("admins")
+          .select("id")
+          .eq("email", user.email);
+
+        if (error) {
+          console.error("Error querying admins table:", error);
+          setIsAdmin(false);
+          router.push("/?error=unauthorized");
+        } else if (data && data.length > 0) {
+          setIsAdmin(true);
+        } else {
+          setIsAdmin(false);
+          router.push("/?error=unauthorized");
+        }
+      } catch (err) {
+        console.error("Exception checking admin status:", err);
+        setIsAdmin(false);
+        router.push("/?error=unauthorized");
+      } finally {
+        setAdminCheckLoading(false);
+      }
+    }
+    
+    if (!authLoading) {
+      checkAdminStatus();
+    } else {
+      setIsAdmin(null);
+    }
+  }, [isLoggedIn, user, authLoading, router]);
+
   // Tab State: 'playbook' | 'library'
   const [activeTab, setActiveTab] = useState<"playbook" | "library">("playbook");
   
@@ -85,6 +132,10 @@ export default function AdminDashboard() {
   // Handler: Publish Audio Playbook
   const handlePublishPlaybook = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      setStatusMsg({ type: "error", text: "Operation forbidden: You are not an authorized administrator." });
+      return;
+    }
     if (!pbTitle.trim() || !pbDesc.trim() || !pbAudioFile) {
       setStatusMsg({ type: "error", text: "Please fill in Title, Description, and select an Audio file." });
       return;
@@ -144,6 +195,10 @@ export default function AdminDashboard() {
   // Handler: Publish Library Resource
   const handlePublishLibrary = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!isAdmin) {
+      setStatusMsg({ type: "error", text: "Operation forbidden: You are not an authorized administrator." });
+      return;
+    }
     if (!libTitle.trim() || !libDesc.trim() || !libDocFile) {
       setStatusMsg({ type: "error", text: "Please fill in Title, Description, and select a document file." });
       return;
@@ -200,7 +255,7 @@ export default function AdminDashboard() {
     }
   };
 
-  if (authLoading) {
+  if (authLoading || (isLoggedIn && adminCheckLoading && isAdmin === null) || !isLoggedIn || isAdmin === false) {
     return (
       <>
         <Navbar />
@@ -208,30 +263,6 @@ export default function AdminDashboard() {
           <div className="text-center">
             <Loader className="animate-spin h-8 w-8 text-[#3B82F6] mx-auto mb-4" />
             <p className="text-xs">Verifying authorization access...</p>
-          </div>
-        </main>
-        <Footer />
-      </>
-    );
-  }
-
-  if (!isLoggedIn) {
-    return (
-      <>
-        <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center px-6">
-          <div className="max-w-md w-full rounded-lg border border-[#2A3442] bg-[#141A22] p-8 text-center shadow-xl">
-            <Shield className="h-12 w-12 text-[#3B82F6] mx-auto mb-4" />
-            <h1 className="text-xl font-bold text-white mb-2">CMS Admin Dashboard</h1>
-            <p className="text-xs text-[#A8B3C5] mb-6 leading-relaxed">
-              Please authenticate with Google to access the PlaySec Content Management System dashboard.
-            </p>
-            <button
-              onClick={loginWithGoogle}
-              className="w-full flex h-10 items-center justify-center gap-2 px-4 rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-sm transition-colors cursor-pointer"
-            >
-              Continue with Google
-            </button>
           </div>
         </main>
         <Footer />
