@@ -53,8 +53,8 @@ export default function Navbar() {
       try {
         const results = await playbookService.getAllPlaybooks(query);
         setSearchResults(results);
-      } catch (e) {
-        console.error("Search failed:", e);
+      } catch {
+        setSearchResults([]);
       }
     }, 150);
 

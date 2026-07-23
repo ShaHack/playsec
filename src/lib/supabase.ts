@@ -10,8 +10,4 @@ if (!process.env.NEXT_PUBLIC_SUPABASE_URL || !process.env.NEXT_PUBLIC_SUPABASE_A
   );
 }
 
-if (typeof window !== "undefined") {
-  console.log("[PlaySec Supabase] Initializing Supabase client with URL:", supabaseUrl);
-}
-
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);

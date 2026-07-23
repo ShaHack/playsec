@@ -6,12 +6,11 @@ import { supabase } from "@/lib/supabase";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { 
-  Upload, FileText, Music, Image as ImageIcon, Shield, 
+  Upload, FileText, Music, Image as ImageIcon, 
   CheckCircle, AlertCircle, Loader, Plus, ArrowLeft 
 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import PlaySecLogo from "@/components/PlaySecLogo";
 
 // Helper: Strict live database authorization validator
 export const assertAdminAuthorization = async (): Promise<string> => {
@@ -56,7 +55,7 @@ export const verifyAdminUser = async (userEmail?: string | null): Promise<boolea
 };
 
 export default function AdminDashboard() {
-  const { isLoggedIn, user, loading: authLoading, loginWithGoogle } = useAuth();
+  const { isLoggedIn, user, loading: authLoading } = useAuth();
   const router = useRouter();
   
   const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
@@ -85,8 +84,7 @@ export default function AdminDashboard() {
           await supabase.auth.signOut().catch(() => {});
           router.replace("/");
         }
-      } catch (err) {
-        console.error("Error verifying admin credentials:", err);
+      } catch {
         if (!mounted) return;
         setIsAdmin(false);
         await supabase.auth.signOut().catch(() => {});
@@ -159,7 +157,7 @@ export default function AdminDashboard() {
     // 1. Independent authorization verification before storage upload
     try {
       await assertAdminAuthorization();
-    } catch (err: unknown) {
+    } catch {
       router.replace("/");
       throw new Error("Access Denied");
     }
@@ -185,13 +183,8 @@ export default function AdminDashboard() {
       });
 
     if (uploadError) {
-      console.error("[PlaySec CMS] Upload error object:", uploadError);
-      
-      // Supabase storage errors carry extra fields beyond the base Error type.
       const errDetails = uploadError as Error & { statusCode?: string; details?: string; hint?: string };
-      const errorMsg = `Storage Upload Failed: ${uploadError.message || "Unknown error"}. Status Code: ${errDetails.statusCode || "N/A"}. Details: ${errDetails.details || "None"}. Hint: ${errDetails.hint || "None"}`;
-      
-      console.error("[PlaySec CMS] Formatted Error Details:", errorMsg);
+      const errorMsg = `Storage Upload Failed: ${uploadError.message || "Unknown error"}. Status Code: ${errDetails.statusCode || "N/A"}.`;
       throw new Error(errorMsg);
     }
 
@@ -204,7 +197,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       await assertAdminAuthorization();
-    } catch (err: unknown) {
+    } catch {
       router.replace("/");
       return;
     }
@@ -271,18 +264,14 @@ export default function AdminDashboard() {
         .select("id, slug, title");
 
       if (dbError) {
-        console.error("[PlaySec CMS] playbooks insert error:", dbError);
-        throw new Error(`Failed to insert playbook: ${dbError.message || JSON.stringify(dbError)}`);
+        throw new Error(`Failed to insert playbook: ${dbError.message || "Database error"}`);
       }
 
       const createdPb = createdPbArray && createdPbArray.length > 0 ? createdPbArray[0] : null;
 
       if (!createdPb || !createdPb.id) {
-        console.error("[PlaySec CMS] Insert succeeded but no ID returned:", createdPbArray);
         throw new Error("Failed to retrieve created playbook ID from Supabase.");
       }
-
-      console.log("[PlaySec CMS] Created playbook ID:", createdPb.id);
 
       // 7. Insert Language Records into playbook_languages
       const langRecords = [
@@ -315,19 +304,14 @@ export default function AdminDashboard() {
         });
       }
 
-      console.log("[PlaySec CMS] Inserting into playbook_languages:", langRecords);
-
-      const { data: insertedLangs, error: langInsertError } = await supabase
+      const { error: langInsertError } = await supabase
         .from("playbook_languages")
         .insert(langRecords)
         .select();
 
       if (langInsertError) {
-        console.error("[PlaySec CMS] Error inserting into playbook_languages:", langInsertError);
-        throw new Error(`Failed to insert language tracks: ${langInsertError.message || JSON.stringify(langInsertError)}`);
+        throw new Error(`Failed to insert language tracks: ${langInsertError.message || "Database error"}`);
       }
-
-      console.log("[PlaySec CMS] Successfully inserted language tracks:", insertedLangs);
 
       setStatusMsg({ type: "success", text: `Playbook "${pbTitle}" (${langList.join(", ")}) published successfully!` });
       // Reset Form
@@ -349,7 +333,7 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       await assertAdminAuthorization();
-    } catch (err: unknown) {
+    } catch {
       router.replace("/");
       return;
     }

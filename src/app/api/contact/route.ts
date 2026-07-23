@@ -123,8 +123,8 @@ export async function POST(req: NextRequest) {
             message,
           }
         ]);
-      } catch (dbErr) {
-        console.warn("[PlaySec Contact API] Supabase feedback insert notice:", dbErr);
+      } catch {
+        // Silently handle persistence fallback
       }
     } else {
       try {
@@ -138,8 +138,8 @@ export async function POST(req: NextRequest) {
             status: "Open",
           }
         ]);
-      } catch (dbErr) {
-        console.warn("[PlaySec Contact API] Supabase support_tickets insert notice:", dbErr);
+      } catch {
+        // Silently handle persistence fallback
       }
     }
 
@@ -196,8 +196,8 @@ ${userAgent}
           subject: adminSubject,
           text: adminTextBody,
         });
-      } catch (rErr) {
-        console.error("[PlaySec Contact API] Admin notification email notice:", rErr);
+      } catch {
+        // Silently continue if notification fails
       }
 
       // Email 2: Auto-responder confirmation email sent back to User (if email exists)
@@ -214,9 +214,8 @@ ${userAgent}
               submittedAt,
             }),
           });
-        } catch (confError) {
-          // If user confirmation fails, log the error silently without failing the support request
-          console.warn("[PlaySec Contact API] User confirmation email warning:", confError);
+        } catch {
+          // Silently continue if user confirmation email fails
         }
       }
     }
@@ -230,13 +229,21 @@ ${userAgent}
       message: successMessage,
     });
 
-  } catch (err: unknown) {
-    console.error("[PlaySec Contact API] Exception:", err);
+  } catch {
     return NextResponse.json(
       { error: "Unable to send your message. Please try again." },
       { status: 500 }
     );
   }
+}
+
+function escapeHtml(str: string): string {
+  return str
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
 }
 
 // Helper: Professional HTML Email Template Generator
@@ -251,6 +258,11 @@ function buildConfirmationHtml({
   subject: string;
   submittedAt: string;
 }) {
+  const safeName = escapeHtml(name);
+  const safeTypeLabel = escapeHtml(typeLabel);
+  const safeSubject = escapeHtml(subject);
+  const safeSubmittedAt = escapeHtml(submittedAt);
+
   return `
 <!DOCTYPE html>
 <html>
@@ -282,7 +294,7 @@ function buildConfirmationHtml({
           <tr>
             <td style="padding: 32px; text-align: left;">
               <h2 style="margin: 0 0 16px 0; font-size: 18px; font-weight: 700; color: #FFFFFF;">
-                Hi ${name},
+                Hi ${safeName},
               </h2>
               
               <p style="margin: 0 0 16px 0; font-size: 14px; line-height: 1.6; color: #A8B3C5;">
@@ -298,15 +310,15 @@ function buildConfirmationHtml({
                 <table width="100%" border="0" cellspacing="0" cellpadding="0" style="font-size: 13px;">
                   <tr>
                     <td style="padding: 6px 0; color: #64748B; width: 100px; font-weight: 600;">Type:</td>
-                    <td style="padding: 6px 0; color: #FFFFFF; font-weight: 600;">${typeLabel}</td>
+                    <td style="padding: 6px 0; color: #FFFFFF; font-weight: 600;">${safeTypeLabel}</td>
                   </tr>
                   <tr>
                     <td style="padding: 6px 0; color: #64748B; font-weight: 600;">Subject:</td>
-                    <td style="padding: 6px 0; color: #FFFFFF;">${subject}</td>
+                    <td style="padding: 6px 0; color: #FFFFFF;">${safeSubject}</td>
                   </tr>
                   <tr>
                     <td style="padding: 6px 0; color: #64748B; font-weight: 600;">Submitted:</td>
-                    <td style="padding: 6px 0; color: #A8B3C5; font-family: monospace;">${submittedAt}</td>
+                    <td style="padding: 6px 0; color: #A8B3C5; font-family: monospace;">${safeSubmittedAt}</td>
                   </tr>
                 </table>
               </div>

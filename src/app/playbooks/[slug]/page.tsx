@@ -1,7 +1,5 @@
 "use client";
 
-export const dynamic = "force-dynamic";
-
 import { useState, useEffect, use, useRef } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
@@ -95,7 +93,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   useEffect(() => {
     if (!audioRef.current) return;
     if (isPlaying) {
-      audioRef.current.play().catch(e => console.error("Playback start error:", e));
+      audioRef.current.play().catch(() => {});
     } else {
       audioRef.current.pause();
     }

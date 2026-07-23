@@ -16,8 +16,11 @@ export const libraryService = {
     try {
       let query = supabase.from("knowledge_resources").select("*").eq("published", true);
 
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,slug.ilike.%${searchQuery}%`);
+      if (searchQuery && searchQuery.trim()) {
+        const sanitized = searchQuery.replace(/[^a-zA-Z0-9\s-_]/g, "").trim();
+        if (sanitized) {
+          query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%,slug.ilike.%${sanitized}%`);
+        }
       }
       
       if (categoryFilter && categoryFilter !== "All") {
@@ -27,8 +30,6 @@ export const libraryService = {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Supabase Query Failed");
-        console.error(error);
         if (error.code === "42P01") throw new Error("Table not found.");
         if (error.code === "42501") throw new Error("Supabase permission denied. Check Row Level Security policies.");
         throw new Error("Unable to connect to PlaySec servers.");
@@ -50,7 +51,6 @@ export const libraryService = {
         throw e;
       }
 
-      console.error("LibraryService Exception", e);
       throw new Error("Unable to connect to PlaySec servers.");
     }
   }

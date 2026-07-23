@@ -24,10 +24,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let mounted = true;
 
     // Get initial session
-    supabase.auth.getSession().then(({ data: { session }, error }) => {
-      if (error) {
-        console.error("[PlaySec Auth] getSession error:", error);
-      }
+    supabase.auth.getSession().then(({ data: { session } }) => {
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);
@@ -36,8 +33,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
 
     // Listen for changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      console.log("[PlaySec Auth] onAuthStateChange event triggered:", event, "User:", currentSession?.user?.email || "No session");
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_, currentSession) => {
       if (mounted) {
         setSession(currentSession);
         setUser(currentSession?.user ?? null);
@@ -59,7 +55,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
     });
     if (error) {
-      console.error("Google Auth failed:", error);
       throw error;
     }
   };
@@ -67,7 +62,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const logout = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) {
-      console.error("Sign out failed:", error);
       throw error;
     }
     // Instantly clear state locally on sign out to prevent latency in UI update

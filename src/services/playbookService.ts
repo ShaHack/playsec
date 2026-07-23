@@ -15,14 +15,16 @@ export const playbookService = {
 
     try {
       let query = supabase.from("playbooks").select("*").eq("published", true);
-      if (searchQuery) {
-        query = query.or(`title.ilike.%${searchQuery}%,description.ilike.%${searchQuery}%,slug.ilike.%${searchQuery}%`);
+      if (searchQuery && searchQuery.trim()) {
+        const sanitized = searchQuery.replace(/[^a-zA-Z0-9\s-_]/g, "").trim();
+        if (sanitized) {
+          query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%,slug.ilike.%${sanitized}%`);
+        }
       }
 
       const { data, error } = await query;
 
       if (error) {
-        console.error("Supabase Query Failed", error);
         if (error.code === "42P01") throw new Error("Table not found.");
         if (error.code === "42501") throw new Error("Supabase permission denied. Check Row Level Security policies.");
         throw new Error("Unable to connect to PlaySec servers.");
@@ -43,8 +45,6 @@ export const playbookService = {
       ) {
         throw e;
       }
-      
-      console.error("PlaybookService Exception", e);
       throw new Error("Unable to connect to PlaySec servers.");
     }
   },
@@ -63,7 +63,6 @@ export const playbookService = {
         .single();
 
       if (playbookError) {
-        console.error("Supabase Query Failed", playbookError);
         if (playbookError.code === "PGRST116") return null;
         if (playbookError.code === "42P01") throw new Error("Table not found.");
         if (playbookError.code === "42501") throw new Error("Supabase permission denied. Check Row Level Security policies.");
@@ -100,8 +99,7 @@ export const playbookService = {
             }
           ];
         }
-      } catch (err) {
-        console.warn("Could not query playbook_languages table, using fallback:", err);
+      } catch {
         playbook.languages = [
           {
             language: "English",
@@ -122,7 +120,6 @@ export const playbookService = {
       ) {
         throw e;
       }
-      console.error("PlaybookService Slug Exception", e);
       throw new Error("Unable to connect to PlaySec servers.");
     }
   }
