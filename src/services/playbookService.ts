@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { AudioPlaybook } from "@/types/playbook";
+import { AudioPlaybook, PlaybookLanguageTrack } from "@/types/playbook";
 
 const isEnvMissing = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -22,9 +22,7 @@ export const playbookService = {
       const { data, error } = await query;
 
       if (error) {
-        console.error("Supabase Query Failed");
-        console.error(error);
-        
+        console.error("Supabase Query Failed", error);
         if (error.code === "42P01") throw new Error("Table not found.");
         if (error.code === "42501") throw new Error("Supabase permission denied. Check Row Level Security policies.");
         throw new Error("Unable to connect to PlaySec servers.");
@@ -57,23 +55,64 @@ export const playbookService = {
     }
 
     try {
-      const { data, error } = await supabase
+      const { data: playbookData, error: playbookError } = await supabase
         .from("playbooks")
         .select("*")
         .eq("slug", slug)
         .eq("published", true)
         .single();
 
-      if (error) {
-        console.error("Supabase Query Failed");
-        console.error(error);
-        if (error.code === "PGRST116") return null; // No rows returned
-        if (error.code === "42P01") throw new Error("Table not found.");
-        if (error.code === "42501") throw new Error("Supabase permission denied. Check Row Level Security policies.");
+      if (playbookError) {
+        console.error("Supabase Query Failed", playbookError);
+        if (playbookError.code === "PGRST116") return null;
+        if (playbookError.code === "42P01") throw new Error("Table not found.");
+        if (playbookError.code === "42501") throw new Error("Supabase permission denied. Check Row Level Security policies.");
         throw new Error("Unable to connect to PlaySec servers.");
       }
 
-      return mapDbToPlaybook(data);
+      const playbook = mapDbToPlaybook(playbookData);
+
+      // Fetch language tracks from playbook_languages table
+      try {
+        const { data: langData, error: langError } = await supabase
+          .from("playbook_languages")
+          .select("*")
+          .eq("playbook_id", playbook.id);
+
+        if (!langError && langData && langData.length > 0) {
+          playbook.languages = langData.map((l: any) => ({
+            id: l.id,
+            playbook_id: l.playbook_id,
+            language: normalizeLanguageName(l.language),
+            audio_url: l.audio_url,
+            download_url: l.download_url || l.audio_url,
+            transcript: l.transcript || "",
+            duration: l.duration || playbook.duration
+          }));
+        } else {
+          // Fallback: create default English track from main playbook row
+          playbook.languages = [
+            {
+              language: "English",
+              audio_url: playbook.audio_url,
+              download_url: playbook.audio_url,
+              duration: playbook.duration
+            }
+          ];
+        }
+      } catch (err) {
+        console.warn("Could not query playbook_languages table, using fallback:", err);
+        playbook.languages = [
+          {
+            language: "English",
+            audio_url: playbook.audio_url,
+            download_url: playbook.audio_url,
+            duration: playbook.duration
+          }
+        ];
+      }
+
+      return playbook;
     } catch (e: unknown) {
       const err = e as Error;
       if (
@@ -108,4 +147,12 @@ function mapDbToPlaybook(dbItem: any): AudioPlaybook {
     featured: dbItem.featured,
     published: dbItem.published
   };
+}
+
+function normalizeLanguageName(lang: string): string {
+  const l = lang.toLowerCase().trim();
+  if (l === "en" || l === "english") return "English";
+  if (l === "ta" || l === "tamil") return "Tamil";
+  if (l === "hi" || l === "hindi") return "Hindi";
+  return lang.charAt(0).toUpperCase() + lang.slice(1);
 }

@@ -117,6 +117,8 @@ export default function AdminDashboard() {
   const [pbDuration, setPbDuration] = useState("08:15");
   const [pbCoverFile, setPbCoverFile] = useState<File | null>(null);
   const [pbAudioFile, setPbAudioFile] = useState<File | null>(null);
+  const [pbAudioFileTa, setPbAudioFileTa] = useState<File | null>(null);
+  const [pbAudioFileHi, setPbAudioFileHi] = useState<File | null>(null);
   const [pbFeatured, setPbFeatured] = useState(false);
   const [pbPublished, setPbPublished] = useState(true);
 
@@ -177,7 +179,7 @@ export default function AdminDashboard() {
     return data.publicUrl;
   };
 
-  // Handler: Publish Audio Playbook
+  // Handler: Publish Audio Playbook with Multi-Language Support
   const handlePublishPlaybook = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -189,7 +191,7 @@ export default function AdminDashboard() {
     }
 
     if (!pbTitle.trim() || !pbDesc.trim() || !pbAudioFile) {
-      setStatusMsg({ type: "error", text: "Please fill in Title, Description, and select an Audio file." });
+      setStatusMsg({ type: "error", text: "Please fill in Title, Description, and select an English Audio file." });
       return;
     }
 
@@ -197,20 +199,37 @@ export default function AdminDashboard() {
     setStatusMsg(null);
 
     try {
-      let audioUrl = "";
+      let audioUrlEn = "";
+      let audioUrlTa = "";
+      let audioUrlHi = "";
       let coverImageUrl = "";
 
-      // 1. Upload Audio File
-      audioUrl = await uploadFileToBucket("playbook-audio", "audio", pbAudioFile);
+      // 1. Upload English Audio File (Required)
+      audioUrlEn = await uploadFileToBucket("playbook-audio", "audio/en", pbAudioFile);
 
-      // 2. Upload Cover Image if selected
+      // 2. Upload Tamil Audio File (Optional)
+      if (pbAudioFileTa) {
+        audioUrlTa = await uploadFileToBucket("playbook-audio", "audio/ta", pbAudioFileTa);
+      }
+
+      // 3. Upload Hindi Audio File (Optional)
+      if (pbAudioFileHi) {
+        audioUrlHi = await uploadFileToBucket("playbook-audio", "audio/hi", pbAudioFileHi);
+      }
+
+      // 4. Upload Cover Image if selected
       if (pbCoverFile) {
         coverImageUrl = await uploadFileToBucket("cover-images", "covers", pbCoverFile);
       }
 
-      // 3. Create Row in playbooks
+      // 5. Construct supported languages tag
+      const langList: string[] = ["English"];
+      if (pbAudioFileTa) langList.push("Tamil");
+      if (pbAudioFileHi) langList.push("Hindi");
+
+      // 6. Create Row in playbooks
       const slug = generateSlug(pbTitle);
-      const { error: dbError } = await supabase.from("playbooks").insert([
+      const { data: createdPb, error: dbError } = await supabase.from("playbooks").insert([
         {
           slug,
           title: pbTitle,
@@ -218,24 +237,65 @@ export default function AdminDashboard() {
           author: pbAuthor,
           category: pbCategory,
           difficulty: pbDifficulty,
-          language: pbLanguages,
+          language: langList.join(", "),
           duration: pbDuration,
           cover_image: coverImageUrl,
-          audio_url: audioUrl,
+          audio_url: audioUrlEn,
           tags: [pbCategory, pbDifficulty],
           featured: pbFeatured,
           published: pbPublished,
           updated_date: new Date().toISOString()
         }
-      ]);
+      ]).select().single();
 
       if (dbError) throw dbError;
 
-      setStatusMsg({ type: "success", text: `Playbook "${pbTitle}" published successfully!` });
+      // 7. Insert Language Records into playbook_languages
+      if (createdPb && createdPb.id) {
+        const langRecords = [
+          {
+            playbook_id: createdPb.id,
+            language: "English",
+            audio_url: audioUrlEn,
+            download_url: audioUrlEn,
+            duration: pbDuration
+          }
+        ];
+
+        if (audioUrlTa) {
+          langRecords.push({
+            playbook_id: createdPb.id,
+            language: "Tamil",
+            audio_url: audioUrlTa,
+            download_url: audioUrlTa,
+            duration: pbDuration
+          });
+        }
+
+        if (audioUrlHi) {
+          langRecords.push({
+            playbook_id: createdPb.id,
+            language: "Hindi",
+            audio_url: audioUrlHi,
+            download_url: audioUrlHi,
+            duration: pbDuration
+          });
+        }
+
+        try {
+          await supabase.from("playbook_languages").insert(langRecords);
+        } catch (lErr) {
+          console.warn("Could not insert into playbook_languages table:", lErr);
+        }
+      }
+
+      setStatusMsg({ type: "success", text: `Playbook "${pbTitle}" (${langList.join(", ")}) published successfully!` });
       // Reset Form
       setPbTitle("");
       setPbDesc("");
       setPbAudioFile(null);
+      setPbAudioFileTa(null);
+      setPbAudioFileHi(null);
       setPbCoverFile(null);
     } catch (err: unknown) {
       setStatusMsg({ type: "error", text: (err as Error).message || "An unexpected error occurred." });
@@ -568,45 +628,91 @@ export default function AdminDashboard() {
               </div>
 
               {/* Files Upload Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-2">
-                {/* Audio File Input */}
-                <div className="rounded border border-[#2A3442] bg-[#141A22]/40 p-4">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-3">
-                    Audio Playbook Track
-                  </span>
-                  <div className="relative border-2 border-dashed border-[#2A3442] hover:border-slate-500 rounded p-6 text-center transition-colors">
-                    <input 
-                      type="file" 
-                      required
-                      accept="audio/*"
-                      onChange={(e) => setPbAudioFile(e.target.files?.[0] || null)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <Music className="h-6 w-6 text-[#3B82F6] mx-auto mb-2" />
-                    <span className="block text-xs font-bold text-slate-200">
-                      {pbAudioFile ? pbAudioFile.name : "Select Playbook Audio File"}
+              <div className="space-y-4 pt-2">
+                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#3B82F6]">
+                  Language Audio Tracks & Cover Image
+                </span>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {/* English Audio File Input (Required) */}
+                  <div className="rounded border border-[#2A3442] bg-[#141A22]/40 p-4">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-white mb-2">
+                      1. English Audio Track (Required)
                     </span>
-                    <span className="block text-[9px] text-[#A8B3C5] mt-1">MP3, WAV, M4A up to 50MB</span>
+                    <div className="relative border-2 border-dashed border-[#2A3442] hover:border-slate-500 rounded p-4 text-center transition-colors">
+                      <input 
+                        type="file" 
+                        required
+                        accept="audio/*"
+                        onChange={(e) => setPbAudioFile(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <Music className="h-5 w-5 text-[#3B82F6] mx-auto mb-1" />
+                      <span className="block text-xs font-bold text-slate-200">
+                        {pbAudioFile ? pbAudioFile.name : "Select English Audio File"}
+                      </span>
+                      <span className="block text-[9px] text-[#A8B3C5] mt-0.5">MP3, WAV, M4A up to 50MB</span>
+                    </div>
                   </div>
-                </div>
 
-                {/* Cover File Input */}
-                <div className="rounded border border-[#2A3442] bg-[#141A22]/40 p-4">
-                  <span className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-3">
-                    Cover Image
-                  </span>
-                  <div className="relative border-2 border-dashed border-[#2A3442] hover:border-slate-500 rounded p-6 text-center transition-colors">
-                    <input 
-                      type="file" 
-                      accept="image/*"
-                      onChange={(e) => setPbCoverFile(e.target.files?.[0] || null)}
-                      className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
-                    />
-                    <ImageIcon className="h-6 w-6 text-[#3B82F6] mx-auto mb-2" />
-                    <span className="block text-xs font-bold text-slate-200">
-                      {pbCoverFile ? pbCoverFile.name : "Select Cover Photo (Optional)"}
+                  {/* Tamil Audio File Input (Optional) */}
+                  <div className="rounded border border-[#2A3442] bg-[#141A22]/40 p-4">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-2">
+                      2. Tamil Audio Track (Optional)
                     </span>
-                    <span className="block text-[9px] text-[#A8B3C5] mt-1">PNG, JPG, WEBP up to 5MB</span>
+                    <div className="relative border-2 border-dashed border-[#2A3442] hover:border-slate-500 rounded p-4 text-center transition-colors">
+                      <input 
+                        type="file" 
+                        accept="audio/*"
+                        onChange={(e) => setPbAudioFileTa(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <Music className="h-5 w-5 text-emerald-400 mx-auto mb-1" />
+                      <span className="block text-xs font-bold text-slate-200">
+                        {pbAudioFileTa ? pbAudioFileTa.name : "Select Tamil Audio File (Optional)"}
+                      </span>
+                      <span className="block text-[9px] text-[#A8B3C5] mt-0.5">MP3, WAV, M4A up to 50MB</span>
+                    </div>
+                  </div>
+
+                  {/* Hindi Audio File Input (Optional) */}
+                  <div className="rounded border border-[#2A3442] bg-[#141A22]/40 p-4">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-2">
+                      3. Hindi Audio Track (Optional)
+                    </span>
+                    <div className="relative border-2 border-dashed border-[#2A3442] hover:border-slate-500 rounded p-4 text-center transition-colors">
+                      <input 
+                        type="file" 
+                        accept="audio/*"
+                        onChange={(e) => setPbAudioFileHi(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <Music className="h-5 w-5 text-amber-400 mx-auto mb-1" />
+                      <span className="block text-xs font-bold text-slate-200">
+                        {pbAudioFileHi ? pbAudioFileHi.name : "Select Hindi Audio File (Optional)"}
+                      </span>
+                      <span className="block text-[9px] text-[#A8B3C5] mt-0.5">MP3, WAV, M4A up to 50MB</span>
+                    </div>
+                  </div>
+
+                  {/* Cover File Input */}
+                  <div className="rounded border border-[#2A3442] bg-[#141A22]/40 p-4">
+                    <span className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-2">
+                      4. Cover Image
+                    </span>
+                    <div className="relative border-2 border-dashed border-[#2A3442] hover:border-slate-500 rounded p-4 text-center transition-colors">
+                      <input 
+                        type="file" 
+                        accept="image/*"
+                        onChange={(e) => setPbCoverFile(e.target.files?.[0] || null)}
+                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer"
+                      />
+                      <ImageIcon className="h-5 w-5 text-[#3B82F6] mx-auto mb-1" />
+                      <span className="block text-xs font-bold text-slate-200">
+                        {pbCoverFile ? pbCoverFile.name : "Select Cover Photo (Optional)"}
+                      </span>
+                      <span className="block text-[9px] text-[#A8B3C5] mt-0.5">PNG, JPG, WEBP up to 5MB</span>
+                    </div>
                   </div>
                 </div>
               </div>

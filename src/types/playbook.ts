@@ -1,3 +1,13 @@
+export interface PlaybookLanguageTrack {
+  id?: string;
+  playbook_id?: string;
+  language: string; // 'English' | 'Tamil' | 'Hindi' or 'en' | 'ta' | 'hi'
+  audio_url: string;
+  download_url?: string;
+  transcript?: string;
+  duration?: string;
+}
+
 export interface AudioPlaybook {
   id: string;
   slug: string;
@@ -14,4 +24,5 @@ export interface AudioPlaybook {
   updated_date?: string;
   featured?: boolean;
   published?: boolean;
+  languages?: PlaybookLanguageTrack[];
 }

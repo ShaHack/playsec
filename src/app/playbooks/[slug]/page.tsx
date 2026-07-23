@@ -224,27 +224,57 @@ export default function PlaybookSlugPage({ params }: PageProps) {
           </div>
 
           {/* ── AUDIO LANGUAGE SELECTOR BAR ── */}
-          <div className="mb-4 flex items-center justify-between border border-[#2A3442] bg-[#141A22] px-4 py-2.5 rounded shadow-sm">
-            <div className="flex items-center gap-2">
-              <Globe className="h-4 w-4 text-[#3B82F6]" />
-              <span className="text-xs font-bold text-white uppercase tracking-wider">Audio Language</span>
-            </div>
-            <div className="flex items-center gap-1">
-              {(["English", "Tamil", "Hindi"] as const).map((lang) => (
-                <button
-                  key={lang}
-                  onClick={() => handleLanguageChange(lang)}
-                  className={`px-3 py-1 rounded text-xs font-bold transition-all select-none ${
-                    selectedLanguage === lang
-                      ? "bg-[#3B82F6] text-white"
-                      : "bg-[#0B0F14] border border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500"
-                  }`}
-                >
-                  {lang}
-                </button>
-              ))}
-            </div>
-          </div>
+          {(() => {
+            const availableLanguages = playbook.languages && playbook.languages.length > 0
+              ? playbook.languages
+              : [
+                  {
+                    language: playbook.language || "English",
+                    audio_url: playbook.audio_url || "",
+                    download_url: playbook.audio_url || "",
+                    duration: playbook.duration || "08:15"
+                  }
+                ];
+
+            return (
+              <div className="mb-4 flex items-center justify-between border border-[#2A3442] bg-[#141A22] px-4 py-2.5 rounded shadow-sm">
+                <div className="flex items-center gap-2">
+                  <Globe className="h-4 w-4 text-[#3B82F6]" />
+                  <span className="text-xs font-bold text-white uppercase tracking-wider">Audio Language</span>
+                </div>
+                <div className="flex items-center gap-1.5">
+                  {(["English", "Tamil", "Hindi"] as const).map((lang) => {
+                    const track = availableLanguages.find(
+                      (l) => l.language.toLowerCase() === lang.toLowerCase()
+                    );
+                    const isAvailable = Boolean(track && track.audio_url);
+
+                    return (
+                      <button
+                        key={lang}
+                        disabled={!isAvailable}
+                        onClick={() => {
+                          if (isAvailable) {
+                            handleLanguageChange(lang);
+                          }
+                        }}
+                        className={`px-3 py-1 rounded text-xs font-bold transition-all select-none ${
+                          !isAvailable
+                            ? "bg-[#0B0F14]/50 border border-[#2A3442]/40 text-slate-600 cursor-not-allowed opacity-50"
+                            : selectedLanguage.toLowerCase() === lang.toLowerCase()
+                            ? "bg-[#3B82F6] text-white shadow cursor-pointer"
+                            : "bg-[#0B0F14] border border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500 cursor-pointer"
+                        }`}
+                        title={!isAvailable ? `${lang} track unavailable for this playbook` : `Switch to ${lang}`}
+                      >
+                        {lang} {!isAvailable && "(N/A)"}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })()}
 
           {/* SPOTIFY-STYLE AUDIO BOARD */}
           <section className="rounded border border-[#2A3442] bg-[#141A22] p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-center shadow-sm">
@@ -288,119 +318,136 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
               {/* Central Audio Player Console */}
               {(() => {
-                console.log("PLAYBOOK:", playbook);
-                return null;
-              })()}
-              <div className="bg-[#0B0F14] border border-[#2A3442] rounded p-4 mb-4 select-none">
+                const availableLanguages = playbook.languages && playbook.languages.length > 0
+                  ? playbook.languages
+                  : [
+                      {
+                        language: playbook.language || "English",
+                        audio_url: playbook.audio_url || "",
+                        download_url: playbook.audio_url || "",
+                        duration: playbook.duration || "08:15"
+                      }
+                    ];
+                const currentTrack = availableLanguages.find(
+                  (l) => l.language.toLowerCase() === selectedLanguage.toLowerCase()
+                ) || availableLanguages[0];
                 
-                {/* Audio Seek bar */}
-                <audio 
-                  ref={audioRef}
-                  src={playbook.audio_url} 
-                  onTimeUpdate={() => {
-                    if (audioRef.current) {
-                      const cur = audioRef.current.currentTime;
-                      const dur = audioRef.current.duration || 1;
-                      setCurrentTimeSec(cur);
-                      setProgress((cur / dur) * 100);
-                    }
-                  }}
-                  onLoadedMetadata={() => {
-                    if (audioRef.current) {
-                      setDurationSec(audioRef.current.duration || 0);
-                    }
-                  }}
-                  onEnded={() => {
-                    setIsPlaying(false);
-                    setProgress(0);
-                    setCurrentTimeSec(0);
-                  }}
-                />
-                
-                <div className="space-y-1 mb-3">
-                  <input 
-                    type="range" 
-                    min="0"
-                    max="100"
-                    step="0.1"
-                    value={progress}
-                    onChange={handleProgressChange}
-                    className="w-full h-1 bg-[#2A3442] rounded-lg appearance-none cursor-pointer accent-[#3B82F6]"
-                    aria-label="Audio progress slider"
-                  />
-                  <div className="flex justify-between text-[10px] text-[#A8B3C5] font-mono">
-                    <span>{formatTime(currentTimeSec)}</span>
-                    <span>{formatTime(durationSec)}</span>
-                  </div>
-                </div>
+                const activeAudioUrl = currentTrack?.audio_url || playbook.audio_url || "";
+                const activeDownloadUrl = currentTrack?.download_url || activeAudioUrl;
 
-                {/* Player controls */}
-                <div className="grid grid-cols-3 items-center">
-                  
-                  {/* Playback speed control */}
-                  <div className="flex items-center gap-1 justify-start">
-                    <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Speed:</span>
-                    <select
-                      value={playbackSpeed}
-                      onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                      className="bg-[#141A22] border border-[#2A3442] rounded px-1.5 py-0.5 text-[10px] text-white font-semibold focus:outline-none cursor-pointer"
-                    >
-                      {speedOptions.map((opt) => (
-                        <option key={opt} value={opt}>
-                          {opt.toFixed(2)}x
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-
-                  {/* Main media buttons */}
-                  <div className="flex items-center justify-center gap-3">
-                    <button 
-                      onClick={handleSkipBackward}
-                      className="p-1 text-slate-400 hover:text-white hover:bg-[#141A22] rounded transition-colors focus:outline-none"
-                      aria-label="Skip backward 10 seconds"
-                    >
-                      <RotateCcw className="h-4.5 w-4.5" />
-                    </button>
-
-                    <button 
-                      onClick={() => {
-                        if (!isLoggedIn) {
-                          loginWithGoogle();
-                          return;
+                return (
+                  <div className="bg-[#0B0F14] border border-[#2A3442] rounded p-4 mb-4 select-none">
+                    
+                    {/* Audio Seek bar */}
+                    <audio 
+                      ref={audioRef}
+                      src={activeAudioUrl} 
+                      onTimeUpdate={() => {
+                        if (audioRef.current) {
+                          const cur = audioRef.current.currentTime;
+                          const dur = audioRef.current.duration || 1;
+                          setCurrentTimeSec(cur);
+                          setProgress((cur / dur) * 100);
                         }
-                        setIsPlaying(prev => !prev);
                       }}
-                      className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 text-white flex items-center justify-center shadow-none transition-all focus:outline-none"
-                      aria-label={isPlaying ? "Pause audio playback" : "Play audio playback"}
-                    >
-                      {isPlaying ? <Pause className="h-4 w-4 fill-white" /> : <Play className="h-4 w-4 fill-white ml-0.5" />}
-                    </button>
-
-                    <button 
-                      onClick={handleSkipForward}
-                      className="p-1 text-slate-400 hover:text-white hover:bg-[#141A22] rounded transition-colors focus:outline-none"
-                      aria-label="Skip forward 10 seconds"
-                    >
-                      <RotateCw className="h-4.5 w-4.5" />
-                    </button>
-                  </div>
-
-                  {/* Volume slider */}
-                  <div className="flex items-center gap-1.5 justify-end">
-                    <Volume2 className="h-3.5 w-3.5 text-slate-500" />
-                    <input
-                      type="range"
-                      min="0"
-                      max="100"
-                      value={volume}
-                      onChange={(e) => setVolume(parseInt(e.target.value, 10))}
-                      className="w-14 h-1 bg-[#2A3442] rounded-lg appearance-none cursor-pointer accent-[#3B82F6]"
-                      aria-label="Volume level control slider"
+                      onLoadedMetadata={() => {
+                        if (audioRef.current) {
+                          setDurationSec(audioRef.current.duration || 0);
+                        }
+                      }}
+                      onEnded={() => {
+                        setIsPlaying(false);
+                        setProgress(0);
+                        setCurrentTimeSec(0);
+                      }}
                     />
+                    
+                    <div className="space-y-1 mb-3">
+                      <input 
+                        type="range" 
+                        min="0"
+                        max="100"
+                        step="0.1"
+                        value={progress}
+                        onChange={handleProgressChange}
+                        className="w-full h-1 bg-[#2A3442] rounded-lg appearance-none cursor-pointer accent-[#3B82F6]"
+                        aria-label="Audio progress slider"
+                      />
+                      <div className="flex justify-between text-[10px] text-[#A8B3C5] font-mono">
+                        <span>{formatTime(currentTimeSec)}</span>
+                        <span>{formatTime(durationSec)}</span>
+                      </div>
+                    </div>
+
+                    {/* Player controls */}
+                    <div className="grid grid-cols-3 items-center">
+                      
+                      {/* Playback speed control */}
+                      <div className="flex items-center gap-1 justify-start">
+                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Speed:</span>
+                        <select
+                          value={playbackSpeed}
+                          onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
+                          className="bg-[#141A22] border border-[#2A3442] rounded px-1.5 py-0.5 text-[10px] text-white font-semibold focus:outline-none cursor-pointer"
+                        >
+                          {speedOptions.map((opt) => (
+                            <option key={opt} value={opt}>
+                              {opt.toFixed(2)}x
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+
+                      {/* Main media buttons */}
+                      <div className="flex items-center justify-center gap-3">
+                        <button 
+                          onClick={handleSkipBackward}
+                          className="p-1 text-slate-400 hover:text-white hover:bg-[#141A22] rounded transition-colors focus:outline-none"
+                          aria-label="Skip backward 10 seconds"
+                        >
+                          <RotateCcw className="h-4.5 w-4.5" />
+                        </button>
+
+                        <button 
+                          onClick={() => {
+                            if (!isLoggedIn) {
+                              loginWithGoogle();
+                              return;
+                            }
+                            setIsPlaying(prev => !prev);
+                          }}
+                          className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 text-white flex items-center justify-center shadow-none transition-all focus:outline-none"
+                          aria-label={isPlaying ? "Pause audio playback" : "Play audio playback"}
+                        >
+                          {isPlaying ? <Pause className="h-4 w-4 fill-white" /> : <Play className="h-4 w-4 fill-white ml-0.5" />}
+                        </button>
+
+                        <button 
+                          onClick={handleSkipForward}
+                          className="p-1 text-slate-400 hover:text-white hover:bg-[#141A22] rounded transition-colors focus:outline-none"
+                          aria-label="Skip forward 10 seconds"
+                        >
+                          <RotateCw className="h-4.5 w-4.5" />
+                        </button>
+                      </div>
+
+                      {/* Volume slider */}
+                      <div className="flex items-center gap-1.5 justify-end">
+                        <Volume2 className="h-3.5 w-3.5 text-slate-500" />
+                        <input
+                          type="range"
+                          min="0"
+                          max="100"
+                          value={volume}
+                          onChange={(e) => setVolume(parseInt(e.target.value, 10))}
+                          className="w-14 h-1 bg-[#2A3442] rounded-lg appearance-none cursor-pointer accent-[#3B82F6]"
+                          aria-label="Volume level control slider"
+                        />
+                      </div>
+                    </div>
                   </div>
-                </div>
-              </div>
+                );
+              })()}
 
               {/* Action buttons + metadata */}
               <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#2A3442] pt-4 text-xs text-[#A8B3C5]">
@@ -423,13 +470,27 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                         loginWithGoogle();
                         return;
                       }
-                      if (!playbook.audio_url) return;
-                      window.open(playbook.audio_url, "_blank");
+                      const availableLanguages = playbook.languages && playbook.languages.length > 0
+                        ? playbook.languages
+                        : [
+                            {
+                              language: playbook.language || "English",
+                              audio_url: playbook.audio_url || "",
+                              download_url: playbook.audio_url || ""
+                            }
+                          ];
+                      const currentTrack = availableLanguages.find(
+                        (l) => l.language.toLowerCase() === selectedLanguage.toLowerCase()
+                      ) || availableLanguages[0];
+                      const downloadUrl = currentTrack?.download_url || currentTrack?.audio_url || playbook.audio_url;
+
+                      if (!downloadUrl) return;
+                      window.open(downloadUrl, "_blank");
                     }}
                     className="flex h-8 items-center gap-1.5 px-3 rounded border border-[#2A3442] bg-[#0B0F14] hover:border-slate-500 hover:text-white text-[#F3F4F6] transition-all select-none"
                   >
                     <Download className="h-4 w-4" />
-                    <span>Download {selectedLanguage.substring(0, 3)} MP3</span>
+                    <span>Download {selectedLanguage} MP3</span>
                   </button>
 
                   <button 
