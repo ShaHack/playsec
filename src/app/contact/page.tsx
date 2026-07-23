@@ -7,7 +7,6 @@ import { Mail, Clock, Send, ShieldCheck, Check, AlertCircle, X } from "lucide-re
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function ContactPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [formName, setFormName] = useState("");
   const [formEmail, setFormEmail] = useState("");
   const [formSubject, setFormSubject] = useState("");
@@ -79,7 +78,7 @@ export default function ContactPage() {
       setFormEmail("");
       setFormSubject("");
       setFormMessage("");
-    } catch (err) {
+    } catch {
       setToast({ show: true, msg: "Unable to send your message. Please try again.", type: "error" });
     } finally {
       setSubmitting(false);
@@ -88,7 +87,7 @@ export default function ContactPage() {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
+      <Navbar />
 
       <main className="flex-1 select-text bg-[#0B0F14] text-[#F3F4F6] min-h-screen">
         

@@ -13,12 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import PlaySecLogo from "@/components/PlaySecLogo";
 
-interface NavbarProps {
-  isLoggedIn?: boolean;
-  onToggleLogin?: () => void;
-}
-
-export default function Navbar({ isLoggedIn: propIsLoggedIn, onToggleLogin }: NavbarProps) {
+export default function Navbar() {
   const pathname = usePathname();
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const profileContainerRef = useRef<HTMLDivElement>(null);

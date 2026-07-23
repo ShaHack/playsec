@@ -144,18 +144,39 @@ export default function AdminDashboard() {
       .replace(/(^-|-$)/g, "");
   };
 
+  // Allow-listed file extensions per storage bucket. Keeps admin uploads
+  // from ever landing on the public buckets as SVG/HTML (which can execute
+  // script in a viewer's browser when opened directly from the public URL).
+  const ALLOWED_EXTENSIONS: Record<string, string[]> = {
+    "playbook-audio": ["mp3", "wav", "m4a", "ogg"],
+    "cover-images": ["jpg", "jpeg", "png", "webp"],
+    "library-resources": ["pdf", "doc", "docx", "csv", "txt", "md"],
+  };
+  const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
+
   // Helper: Upload file to a Supabase bucket and return public URL
   const uploadFileToBucket = async (bucket: string, folder: string, file: File): Promise<string> => {
     // 1. Independent authorization verification before storage upload
     try {
       await assertAdminAuthorization();
-    } catch (err: any) {
-      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : "Access Denied";
+      setStatusMsg({ type: "error", text: message });
       router.replace("/?error=unauthorized");
-      throw new Error(err.message || "Access Denied");
+      throw new Error(message);
     }
 
-    const fileExt = file.name.split(".").pop();
+    const fileExt = (file.name.split(".").pop() || "").toLowerCase();
+    const allowedForBucket = ALLOWED_EXTENSIONS[bucket];
+    if (allowedForBucket && !allowedForBucket.includes(fileExt)) {
+      throw new Error(
+        `Unsupported file type ".${fileExt || "unknown"}" for this upload. Allowed: ${allowedForBucket.join(", ")}.`
+      );
+    }
+    if (file.size > MAX_UPLOAD_BYTES) {
+      throw new Error(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Max allowed is 50MB.`);
+    }
+
     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
     
     const { error: uploadError } = await supabase.storage
@@ -168,8 +189,8 @@ export default function AdminDashboard() {
     if (uploadError) {
       console.error("[PlaySec CMS] Upload error object:", uploadError);
       
-      // Cast to any to safely extract specific storage error properties
-      const errDetails = uploadError as any;
+      // Supabase storage errors carry extra fields beyond the base Error type.
+      const errDetails = uploadError as Error & { statusCode?: string; details?: string; hint?: string };
       const errorMsg = `Storage Upload Failed: ${uploadError.message || "Unknown error"}. Status Code: ${errDetails.statusCode || "N/A"}. Details: ${errDetails.details || "None"}. Hint: ${errDetails.hint || "None"}`;
       
       console.error("[PlaySec CMS] Formatted Error Details:", errorMsg);
@@ -185,8 +206,8 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       await assertAdminAuthorization();
-    } catch (err: any) {
-      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
+    } catch (err: unknown) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Access Denied" });
       router.replace("/?error=unauthorized");
       return;
     }
@@ -228,67 +249,88 @@ export default function AdminDashboard() {
       if (pbAudioFileTa) langList.push("Tamil");
       if (pbAudioFileHi) langList.push("Hindi");
 
-      // 6. Create Row in playbooks
+      // 6. Create single Row in playbooks
       const slug = generateSlug(pbTitle);
-      const { data: createdPb, error: dbError } = await supabase.from("playbooks").insert([
-        {
-          slug,
-          title: pbTitle,
-          description: pbDesc,
-          author: pbAuthor,
-          category: pbCategory,
-          difficulty: pbDifficulty,
-          language: langList.join(", "),
-          duration: pbDuration,
-          cover_image: coverImageUrl,
-          audio_url: audioUrlEn,
-          tags: [pbCategory, pbDifficulty],
-          featured: pbFeatured,
-          published: pbPublished,
-          updated_date: new Date().toISOString()
-        }
-      ]).select().single();
+      const { data: createdPbArray, error: dbError } = await supabase
+        .from("playbooks")
+        .insert([
+          {
+            slug,
+            title: pbTitle,
+            description: pbDesc,
+            author: pbAuthor,
+            category: pbCategory,
+            difficulty: pbDifficulty,
+            language: langList.join(", "),
+            duration: pbDuration,
+            cover_image: coverImageUrl,
+            audio_url: audioUrlEn,
+            tags: [pbCategory, pbDifficulty],
+            featured: pbFeatured,
+            published: pbPublished,
+            updated_date: new Date().toISOString()
+          }
+        ])
+        .select("id, slug, title");
 
-      if (dbError) throw dbError;
+      if (dbError) {
+        console.error("[PlaySec CMS] playbooks insert error:", dbError);
+        throw new Error(`Failed to insert playbook: ${dbError.message || JSON.stringify(dbError)}`);
+      }
+
+      const createdPb = createdPbArray && createdPbArray.length > 0 ? createdPbArray[0] : null;
+
+      if (!createdPb || !createdPb.id) {
+        console.error("[PlaySec CMS] Insert succeeded but no ID returned:", createdPbArray);
+        throw new Error("Failed to retrieve created playbook ID from Supabase.");
+      }
+
+      console.log("[PlaySec CMS] Created playbook ID:", createdPb.id);
 
       // 7. Insert Language Records into playbook_languages
-      if (createdPb && createdPb.id) {
-        const langRecords = [
-          {
-            playbook_id: createdPb.id,
-            language: "English",
-            audio_url: audioUrlEn,
-            download_url: audioUrlEn,
-            duration: pbDuration
-          }
-        ];
-
-        if (audioUrlTa) {
-          langRecords.push({
-            playbook_id: createdPb.id,
-            language: "Tamil",
-            audio_url: audioUrlTa,
-            download_url: audioUrlTa,
-            duration: pbDuration
-          });
+      const langRecords = [
+        {
+          playbook_id: createdPb.id,
+          language: "English",
+          audio_url: audioUrlEn,
+          download_url: audioUrlEn,
+          duration: pbDuration
         }
+      ];
 
-        if (audioUrlHi) {
-          langRecords.push({
-            playbook_id: createdPb.id,
-            language: "Hindi",
-            audio_url: audioUrlHi,
-            download_url: audioUrlHi,
-            duration: pbDuration
-          });
-        }
-
-        const { error: langInsertError } = await supabase.from("playbook_languages").insert(langRecords);
-        if (langInsertError) {
-          console.error("Error inserting into playbook_languages:", langInsertError);
-          throw langInsertError;
-        }
+      if (audioUrlTa) {
+        langRecords.push({
+          playbook_id: createdPb.id,
+          language: "Tamil",
+          audio_url: audioUrlTa,
+          download_url: audioUrlTa,
+          duration: pbDuration
+        });
       }
+
+      if (audioUrlHi) {
+        langRecords.push({
+          playbook_id: createdPb.id,
+          language: "Hindi",
+          audio_url: audioUrlHi,
+          download_url: audioUrlHi,
+          duration: pbDuration
+        });
+      }
+
+      console.log("[PlaySec CMS] Inserting into playbook_languages:", langRecords);
+
+      const { data: insertedLangs, error: langInsertError } = await supabase
+        .from("playbook_languages")
+        .insert(langRecords)
+        .select();
+
+      if (langInsertError) {
+        console.error("[PlaySec CMS] Error inserting into playbook_languages:", langInsertError);
+        throw new Error(`Failed to insert language tracks: ${langInsertError.message || JSON.stringify(langInsertError)}`);
+      }
+
+      console.log("[PlaySec CMS] Successfully inserted language tracks:", insertedLangs);
 
       setStatusMsg({ type: "success", text: `Playbook "${pbTitle}" (${langList.join(", ")}) published successfully!` });
       // Reset Form
@@ -310,8 +352,8 @@ export default function AdminDashboard() {
     e.preventDefault();
     try {
       await assertAdminAuthorization();
-    } catch (err: any) {
-      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
+    } catch (err: unknown) {
+      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Access Denied" });
       router.replace("/?error=unauthorized");
       return;
     }
@@ -592,7 +634,7 @@ export default function AdminDashboard() {
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-2">Difficulty</label>
                   <select
                     value={pbDifficulty}
-                    onChange={(e) => setPbDifficulty(e.target.value as any)}
+                    onChange={(e) => setPbDifficulty(e.target.value as "Beginner" | "Intermediate" | "Advanced")}
                     className="w-full h-10 px-2 text-xs rounded border border-[#2A3442] bg-[#141A22] text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
                   >
                     <option value="Beginner">Beginner</option>

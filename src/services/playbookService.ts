@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { AudioPlaybook, PlaybookLanguageTrack } from "@/types/playbook";
+import { AudioPlaybook } from "@/types/playbook";
 
 const isEnvMissing = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -80,12 +80,12 @@ export const playbookService = {
           .eq("playbook_id", playbook.id);
 
         if (!langError && langData && langData.length > 0) {
-          playbook.languages = langData.map((l: any) => ({
+          playbook.languages = langData.map((l: Record<string, string | undefined>) => ({
             id: l.id,
             playbook_id: l.playbook_id,
-            language: normalizeLanguageName(l.language),
-            audio_url: l.audio_url,
-            download_url: l.download_url || l.audio_url,
+            language: normalizeLanguageName(l.language || "English"),
+            audio_url: l.audio_url || playbook.audio_url,
+            download_url: l.download_url || l.audio_url || playbook.audio_url,
             transcript: l.transcript || "",
             duration: l.duration || playbook.duration
           }));

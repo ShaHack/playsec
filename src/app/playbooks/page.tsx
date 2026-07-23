@@ -13,13 +13,6 @@ import {
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
-const CATEGORY_STYLES: Record<string, string> = {
-  "Audio Briefings": "bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20",
-  "Case Studies": "bg-[#A8B3C5]/10 text-slate-300 border border-[#A8B3C5]/20",
-  "Incident Walkthroughs": "bg-[#A8B3C5]/10 text-slate-300 border border-[#A8B3C5]/20",
-  "Security Talks": "bg-[#A8B3C5]/10 text-slate-300 border border-[#A8B3C5]/20"
-};
-
 const DIFFICULTY_STYLES = {
   "Beginner": "bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20",
   "Intermediate": "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20",

@@ -1,12 +1,10 @@
 "use client";
 
-import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Lock, FileText, CheckCircle } from "lucide-react";
 
 export default function PrivacyPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const policySections = [
     {
@@ -36,7 +34,7 @@ export default function PrivacyPage() {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
+      <Navbar />
 
       <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA] min-h-screen">
         

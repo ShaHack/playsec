@@ -6,8 +6,7 @@ import Footer from "@/components/Footer";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   X, ChevronDown, Send, Check, AlertCircle, HelpCircle,
-  Mail, Clock, ShieldCheck, BookOpen, FileText, CheckCircle,
-  Star, MessageSquare, LifeBuoy, Sparkles
+  CheckCircle, Star, LifeBuoy, Sparkles
 } from "lucide-react";
 
 interface FAQItem { id: number; question: string; answer: string; }
@@ -66,7 +65,6 @@ const FAQ_DATA: FAQItem[] = [
 ];
 
 export default function CommunityPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [faqSearch, setFaqSearch] = useState("");
   const [expandedFaqId, setExpandedFaqId] = useState<number | null>(null);
   
@@ -166,7 +164,7 @@ export default function CommunityPage() {
       setFbEmail("");
       setFbMessage("");
       setFbRating(5);
-    } catch (err) {
+    } catch {
       setToast({ show: true, msg: "Unable to send your feedback. Please try again.", type: "error" });
     } finally {
       setSubmitting(false);
@@ -230,7 +228,7 @@ export default function CommunityPage() {
       setSpEmail("");
       setSpSubject("");
       setSpMessage("");
-    } catch (err) {
+    } catch {
       setToast({ show: true, msg: "Unable to send your support request. Please try again.", type: "error" });
     } finally {
       setSubmitting(false);
@@ -239,7 +237,7 @@ export default function CommunityPage() {
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
+      <Navbar />
 
       <main className="flex-1 text-[#F3F4F6] relative overflow-hidden select-text bg-[#0B0F14] pb-20 pt-8 min-h-screen">
         
@@ -393,7 +391,7 @@ export default function CommunityPage() {
                         </label>
                         <select
                           value={fbType}
-                          onChange={(e) => setFbType(e.target.value as any)}
+                          onChange={(e) => setFbType(e.target.value as "Suggestion" | "Feature Request" | "General Feedback" | "Compliment")}
                           className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
                         >
                           <option value="Suggestion">Suggestion</option>
@@ -538,7 +536,7 @@ export default function CommunityPage() {
                         </label>
                         <select
                           value={spPriority}
-                          onChange={(e) => setSpPriority(e.target.value as any)}
+                          onChange={(e) => setSpPriority(e.target.value as "Low" | "Medium" | "High")}
                           className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
                         >
                           <option value="Low">Low</option>

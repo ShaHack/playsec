@@ -23,22 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-    if (typeof window !== "undefined") {
-      console.log("[PlaySec Auth] Initializing AuthProvider");
-      console.log("[PlaySec Auth] Location href:", window.location.href);
-      console.log("[PlaySec Auth] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
-      console.log("[PlaySec Auth] Hash exists:", !!window.location.hash);
-      if (window.location.hash) {
-        console.log("[PlaySec Auth] URL Hash parameters:", window.location.hash.substring(0, 50) + "...");
-      }
-    }
-
     // Get initial session
     supabase.auth.getSession().then(({ data: { session }, error }) => {
       if (error) {
         console.error("[PlaySec Auth] getSession error:", error);
       }
-      console.log("[PlaySec Auth] getSession resolved. Session user:", session?.user?.email || "No session");
       if (mounted) {
         setSession(session);
         setUser(session?.user ?? null);

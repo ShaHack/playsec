@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowRight, Check, Activity, Zap, ShieldAlert } from "lucide-react";
+import { ArrowRight, Check, Activity, Zap } from "lucide-react";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 interface AttackLog { id: string; time: string; type: string; route: string; }
@@ -38,12 +38,6 @@ const ATTACK_TYPES = [
   "APT Activity","Port Scan","Phishing Campaign","Ransomware Delivery",
   "Zero-Day Exploit","Data Exfiltration","Brute Force","Command Injection",
 ];
-const THREAT_STYLE: Record<ThreatLevel,{ text: string }> = {
-  HIGH:     { text: "text-orange-400" },
-  MEDIUM:   { text: "text-yellow-400" },
-  CRITICAL: { text: "text-red-400"    },
-};
-
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const ri = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
@@ -185,7 +179,7 @@ export default function Hero() {
     };
   }, [state.ready]);
 
-  const { ready, attacksToday, streams, countries, topCountry, threatLevel, logs, particles, netLines } = state;
+  const { ready, attacksToday, streams, countries, topCountry, logs, particles, netLines } = state;
 
   return (
     <section className="relative w-full min-h-[85vh] flex items-center border-b border-[#27272A] py-12 md:py-16 select-text bg-[#09090B]">
