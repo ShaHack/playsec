@@ -2,7 +2,7 @@
 
 export const dynamic = "force-dynamic";
 
-import { useState, useEffect, useMemo, use, useRef } from "react";
+import { useState, useEffect, use, useRef } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -333,7 +333,6 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                 ) || availableLanguages[0];
                 
                 const activeAudioUrl = currentTrack?.audio_url || playbook.audio_url || "";
-                const activeDownloadUrl = currentTrack?.download_url || activeAudioUrl;
 
                 return (
                   <div className="bg-[#0B0F14] border border-[#2A3442] rounded p-4 mb-4 select-none">

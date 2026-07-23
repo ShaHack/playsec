@@ -1,16 +1,14 @@
 "use client";
 
-import { useState } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { Shield, Target, Compass, Award, Users, Eye, Layers } from "lucide-react";
 
 export default function AboutPage() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   return (
     <>
-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
+      <Navbar />
 
       <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA] min-h-screen">
         

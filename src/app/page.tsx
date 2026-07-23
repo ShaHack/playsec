@@ -16,13 +16,16 @@ import {
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function Home() {
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [unauthorizedError, setUnauthorizedError] = useState(false);
 
   useEffect(() => {
     if (typeof window !== "undefined") {
       const params = new URLSearchParams(window.location.search);
       if (params.get("error") === "unauthorized") {
+        // This reads a one-time value from the URL on initial mount (not
+        // available during SSR), so it must run in an effect; it does not
+        // cascade further renders.
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         setUnauthorizedError(true);
         // Clean URL parameters cleanly
         window.history.replaceState({}, document.title, window.location.pathname);
@@ -124,7 +127,7 @@ export default function Home() {
             </div>
             <div className="flex-1">
               <p className="text-xs font-bold leading-normal">
-                You don't have permission to access the Admin Dashboard.
+                You don&apos;t have permission to access the Admin Dashboard.
               </p>
             </div>
             <button 

@@ -1,0 +1,550 @@
+diff --git a/next.config.ts b/next.config.ts
+index e9ffa30..80b98bb 100644
+--- a/next.config.ts
++++ b/next.config.ts
+@@ -1,7 +1,66 @@
+ import type { NextConfig } from "next";
+ 
++// Security headers applied to every route.
++// These are additive-only (no route behavior changes) and safe to ship
++// without breaking existing functionality: Google OAuth popup/redirect,
++// Supabase REST/Storage calls, and audio/image loading from Supabase
++// Storage all remain allowed under this policy.
++const securityHeaders = [
++  {
++    // Prevents the site from being embedded in an <iframe> on another
++    // origin, mitigating clickjacking.
++    key: "X-Frame-Options",
++    value: "DENY",
++  },
++  {
++    // Stops browsers from MIME-sniffing a response away from its
++    // declared Content-Type (reduces stored-file/XSS risk from uploads).
++    key: "X-Content-Type-Options",
++    value: "nosniff",
++  },
++  {
++    key: "Referrer-Policy",
++    value: "strict-origin-when-cross-origin",
++  },
++  {
++    // Disables powerful browser features the app doesn't use.
++    key: "Permissions-Policy",
++    value: "camera=(), microphone=(), geolocation=(), payment=()",
++  },
++  {
++    // Enforces HTTPS on repeat visits once deployed behind TLS (Vercel).
++    key: "Strict-Transport-Security",
++    value: "max-age=63072000; includeSubDomains; preload",
++  },
++  {
++    key: "Content-Security-Policy",
++    value: [
++      "default-src 'self'",
++      // Next.js/Framer Motion/inline hydration scripts require these in the
++      // App Router without a nonce-based setup; tightening further would
++      // require introducing per-request nonces, which is a larger change.
++      "script-src 'self' 'unsafe-inline' 'unsafe-eval'",
++      "style-src 'self' 'unsafe-inline'",
++      "img-src 'self' data: blob: https://*.supabase.co",
++      "media-src 'self' https://*.supabase.co",
++      "font-src 'self' data:",
++      "connect-src 'self' https://*.supabase.co wss://*.supabase.co",
++      "frame-ancestors 'none'",
++      "base-uri 'self'",
++      "form-action 'self'",
++    ].join("; "),
++  },
++];
++
+ const nextConfig: NextConfig = {
+-  /* config options here */
++  async headers() {
++    return [
++      {
++        source: "/:path*",
++        headers: securityHeaders,
++      },
++    ];
++  },
+ };
+ 
+ export default nextConfig;
+diff --git a/package.json b/package.json
+index 64a51a8..8a5f8c1 100644
+--- a/package.json
++++ b/package.json
+@@ -14,7 +14,7 @@
+     "@supabase/supabase-js": "^2.110.8",
+     "framer-motion": "^12.42.2",
+     "lucide-react": "^1.25.0",
+-    "next": "16.2.10",
++    "next": "16.2.11",
+     "react": "19.2.4",
+     "react-dom": "19.2.4",
+     "resend": "^6.18.0",
+diff --git a/src/app/about/page.tsx b/src/app/about/page.tsx
+index af48162..9b98972 100644
+--- a/src/app/about/page.tsx
++++ b/src/app/about/page.tsx
+@@ -1,16 +1,14 @@
+ "use client";
+ 
+-import { useState } from "react";
+ import Navbar from "@/components/Navbar";
+ import Footer from "@/components/Footer";
+ import { Shield, Target, Compass, Award, Users, Eye, Layers } from "lucide-react";
+ 
+ export default function AboutPage() {
+-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+ 
+   return (
+     <>
+-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
++      <Navbar />
+ 
+       <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA] min-h-screen">
+         
+diff --git a/src/app/admin/page.tsx b/src/app/admin/page.tsx
+index 3485483..f99e40c 100644
+--- a/src/app/admin/page.tsx
++++ b/src/app/admin/page.tsx
+@@ -144,18 +144,39 @@ export default function AdminDashboard() {
+       .replace(/(^-|-$)/g, "");
+   };
+ 
++  // Allow-listed file extensions per storage bucket. Keeps admin uploads
++  // from ever landing on the public buckets as SVG/HTML (which can execute
++  // script in a viewer's browser when opened directly from the public URL).
++  const ALLOWED_EXTENSIONS: Record<string, string[]> = {
++    "playbook-audio": ["mp3", "wav", "m4a", "ogg"],
++    "cover-images": ["jpg", "jpeg", "png", "webp"],
++    "library-resources": ["pdf", "doc", "docx", "csv", "txt", "md"],
++  };
++  const MAX_UPLOAD_BYTES = 50 * 1024 * 1024; // 50MB
++
+   // Helper: Upload file to a Supabase bucket and return public URL
+   const uploadFileToBucket = async (bucket: string, folder: string, file: File): Promise<string> => {
+     // 1. Independent authorization verification before storage upload
+     try {
+       await assertAdminAuthorization();
+-    } catch (err: any) {
+-      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
++    } catch (err: unknown) {
++      const message = err instanceof Error ? err.message : "Access Denied";
++      setStatusMsg({ type: "error", text: message });
+       router.replace("/?error=unauthorized");
+-      throw new Error(err.message || "Access Denied");
++      throw new Error(message);
++    }
++
++    const fileExt = (file.name.split(".").pop() || "").toLowerCase();
++    const allowedForBucket = ALLOWED_EXTENSIONS[bucket];
++    if (allowedForBucket && !allowedForBucket.includes(fileExt)) {
++      throw new Error(
++        `Unsupported file type ".${fileExt || "unknown"}" for this upload. Allowed: ${allowedForBucket.join(", ")}.`
++      );
++    }
++    if (file.size > MAX_UPLOAD_BYTES) {
++      throw new Error(`File is too large (${(file.size / (1024 * 1024)).toFixed(1)}MB). Max allowed is 50MB.`);
+     }
+ 
+-    const fileExt = file.name.split(".").pop();
+     const fileName = `${folder}/${Date.now()}-${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+     
+     const { error: uploadError } = await supabase.storage
+@@ -168,8 +189,8 @@ export default function AdminDashboard() {
+     if (uploadError) {
+       console.error("[PlaySec CMS] Upload error object:", uploadError);
+       
+-      // Cast to any to safely extract specific storage error properties
+-      const errDetails = uploadError as any;
++      // Supabase storage errors carry extra fields beyond the base Error type.
++      const errDetails = uploadError as Error & { statusCode?: string; details?: string; hint?: string };
+       const errorMsg = `Storage Upload Failed: ${uploadError.message || "Unknown error"}. Status Code: ${errDetails.statusCode || "N/A"}. Details: ${errDetails.details || "None"}. Hint: ${errDetails.hint || "None"}`;
+       
+       console.error("[PlaySec CMS] Formatted Error Details:", errorMsg);
+@@ -185,8 +206,8 @@ export default function AdminDashboard() {
+     e.preventDefault();
+     try {
+       await assertAdminAuthorization();
+-    } catch (err: any) {
+-      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
++    } catch (err: unknown) {
++      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Access Denied" });
+       router.replace("/?error=unauthorized");
+       return;
+     }
+@@ -310,8 +331,8 @@ export default function AdminDashboard() {
+     e.preventDefault();
+     try {
+       await assertAdminAuthorization();
+-    } catch (err: any) {
+-      setStatusMsg({ type: "error", text: err.message || "Access Denied" });
++    } catch (err: unknown) {
++      setStatusMsg({ type: "error", text: err instanceof Error ? err.message : "Access Denied" });
+       router.replace("/?error=unauthorized");
+       return;
+     }
+@@ -592,7 +613,7 @@ export default function AdminDashboard() {
+                   <label className="block text-[10px] font-bold uppercase tracking-wider text-[#A8B3C5] mb-2">Difficulty</label>
+                   <select
+                     value={pbDifficulty}
+-                    onChange={(e) => setPbDifficulty(e.target.value as any)}
++                    onChange={(e) => setPbDifficulty(e.target.value as "Beginner" | "Intermediate" | "Advanced")}
+                     className="w-full h-10 px-2 text-xs rounded border border-[#2A3442] bg-[#141A22] text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                   >
+                     <option value="Beginner">Beginner</option>
+diff --git a/src/app/api/contact/route.ts b/src/app/api/contact/route.ts
+index 01810dc..2c4ca99 100644
+--- a/src/app/api/contact/route.ts
++++ b/src/app/api/contact/route.ts
+@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
+     }
+ 
+     const body = await req.json();
+-    let { targetType, formType, name, email, feedbackType, rating, subject, priority, message } = body;
++    const { targetType, formType, rating } = body;
++    let { name, email, feedbackType, subject, priority, message } = body;
+ 
+     const isFeedback = targetType === "feedback" || (formType || "").toLowerCase() === "feedback";
+ 
+diff --git a/src/app/community/page.tsx b/src/app/community/page.tsx
+index 5d1a2f4..0c8ebdd 100644
+--- a/src/app/community/page.tsx
++++ b/src/app/community/page.tsx
+@@ -6,8 +6,7 @@ import Footer from "@/components/Footer";
+ import { motion, AnimatePresence } from "framer-motion";
+ import {
+   X, ChevronDown, Send, Check, AlertCircle, HelpCircle,
+-  Mail, Clock, ShieldCheck, BookOpen, FileText, CheckCircle,
+-  Star, MessageSquare, LifeBuoy, Sparkles
++  CheckCircle, Star, LifeBuoy, Sparkles
+ } from "lucide-react";
+ 
+ interface FAQItem { id: number; question: string; answer: string; }
+@@ -66,7 +65,6 @@ const FAQ_DATA: FAQItem[] = [
+ ];
+ 
+ export default function CommunityPage() {
+-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+   const [faqSearch, setFaqSearch] = useState("");
+   const [expandedFaqId, setExpandedFaqId] = useState<number | null>(null);
+   
+@@ -166,7 +164,7 @@ export default function CommunityPage() {
+       setFbEmail("");
+       setFbMessage("");
+       setFbRating(5);
+-    } catch (err) {
++    } catch {
+       setToast({ show: true, msg: "Unable to send your feedback. Please try again.", type: "error" });
+     } finally {
+       setSubmitting(false);
+@@ -230,7 +228,7 @@ export default function CommunityPage() {
+       setSpEmail("");
+       setSpSubject("");
+       setSpMessage("");
+-    } catch (err) {
++    } catch {
+       setToast({ show: true, msg: "Unable to send your support request. Please try again.", type: "error" });
+     } finally {
+       setSubmitting(false);
+@@ -239,7 +237,7 @@ export default function CommunityPage() {
+ 
+   return (
+     <>
+-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
++      <Navbar />
+ 
+       <main className="flex-1 text-[#F3F4F6] relative overflow-hidden select-text bg-[#0B0F14] pb-20 pt-8 min-h-screen">
+         
+@@ -393,7 +391,7 @@ export default function CommunityPage() {
+                         </label>
+                         <select
+                           value={fbType}
+-                          onChange={(e) => setFbType(e.target.value as any)}
++                          onChange={(e) => setFbType(e.target.value as "Suggestion" | "Feature Request" | "General Feedback" | "Compliment")}
+                           className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                         >
+                           <option value="Suggestion">Suggestion</option>
+@@ -538,7 +536,7 @@ export default function CommunityPage() {
+                         </label>
+                         <select
+                           value={spPriority}
+-                          onChange={(e) => setSpPriority(e.target.value as any)}
++                          onChange={(e) => setSpPriority(e.target.value as "Low" | "Medium" | "High")}
+                           className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                         >
+                           <option value="Low">Low</option>
+diff --git a/src/app/contact/page.tsx b/src/app/contact/page.tsx
+index e18ec15..a94326e 100644
+--- a/src/app/contact/page.tsx
++++ b/src/app/contact/page.tsx
+@@ -7,7 +7,6 @@ import { Mail, Clock, Send, ShieldCheck, Check, AlertCircle, X } from "lucide-re
+ import { motion, AnimatePresence } from "framer-motion";
+ 
+ export default function ContactPage() {
+-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+   const [formName, setFormName] = useState("");
+   const [formEmail, setFormEmail] = useState("");
+   const [formSubject, setFormSubject] = useState("");
+@@ -79,7 +78,7 @@ export default function ContactPage() {
+       setFormEmail("");
+       setFormSubject("");
+       setFormMessage("");
+-    } catch (err) {
++    } catch {
+       setToast({ show: true, msg: "Unable to send your message. Please try again.", type: "error" });
+     } finally {
+       setSubmitting(false);
+@@ -88,7 +87,7 @@ export default function ContactPage() {
+ 
+   return (
+     <>
+-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
++      <Navbar />
+ 
+       <main className="flex-1 select-text bg-[#0B0F14] text-[#F3F4F6] min-h-screen">
+         
+diff --git a/src/app/docs/page.tsx b/src/app/docs/page.tsx
+index b6bae58..0ac0831 100644
+--- a/src/app/docs/page.tsx
++++ b/src/app/docs/page.tsx
+@@ -1,12 +1,10 @@
+ "use client";
+ 
+-import { useState } from "react";
+ import Navbar from "@/components/Navbar";
+ import Footer from "@/components/Footer";
+ import { Book, Play, Folder, Search, Bookmark, Globe, HelpCircle } from "lucide-react";
+ 
+ export default function DocsPage() {
+-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+ 
+   const docSections = [
+     {
+@@ -48,7 +46,7 @@ export default function DocsPage() {
+ 
+   return (
+     <>
+-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
++      <Navbar />
+ 
+       <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA] min-h-screen">
+         
+diff --git a/src/app/page.tsx b/src/app/page.tsx
+index 00fcffc..7dfffd9 100644
+--- a/src/app/page.tsx
++++ b/src/app/page.tsx
+@@ -16,13 +16,16 @@ import {
+ import { motion, AnimatePresence } from "framer-motion";
+ 
+ export default function Home() {
+-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+   const [unauthorizedError, setUnauthorizedError] = useState(false);
+ 
+   useEffect(() => {
+     if (typeof window !== "undefined") {
+       const params = new URLSearchParams(window.location.search);
+       if (params.get("error") === "unauthorized") {
++        // This reads a one-time value from the URL on initial mount (not
++        // available during SSR), so it must run in an effect; it does not
++        // cascade further renders.
++        // eslint-disable-next-line react-hooks/set-state-in-effect
+         setUnauthorizedError(true);
+         // Clean URL parameters cleanly
+         window.history.replaceState({}, document.title, window.location.pathname);
+@@ -124,7 +127,7 @@ export default function Home() {
+             </div>
+             <div className="flex-1">
+               <p className="text-xs font-bold leading-normal">
+-                You don't have permission to access the Admin Dashboard.
++                You don&apos;t have permission to access the Admin Dashboard.
+               </p>
+             </div>
+             <button 
+diff --git a/src/app/playbooks/[slug]/page.tsx b/src/app/playbooks/[slug]/page.tsx
+index 1248cc3..db03569 100644
+--- a/src/app/playbooks/[slug]/page.tsx
++++ b/src/app/playbooks/[slug]/page.tsx
+@@ -2,7 +2,7 @@
+ 
+ export const dynamic = "force-dynamic";
+ 
+-import { useState, useEffect, useMemo, use, useRef } from "react";
++import { useState, useEffect, use, useRef } from "react";
+ import { notFound } from "next/navigation";
+ import Link from "next/link";
+ import Navbar from "@/components/Navbar";
+@@ -333,7 +333,6 @@ export default function PlaybookSlugPage({ params }: PageProps) {
+                 ) || availableLanguages[0];
+                 
+                 const activeAudioUrl = currentTrack?.audio_url || playbook.audio_url || "";
+-                const activeDownloadUrl = currentTrack?.download_url || activeAudioUrl;
+ 
+                 return (
+                   <div className="bg-[#0B0F14] border border-[#2A3442] rounded p-4 mb-4 select-none">
+diff --git a/src/app/playbooks/page.tsx b/src/app/playbooks/page.tsx
+index eba2457..ee8ff91 100644
+--- a/src/app/playbooks/page.tsx
++++ b/src/app/playbooks/page.tsx
+@@ -13,13 +13,6 @@ import {
+ } from "lucide-react";
+ import { useAuth } from "@/hooks/useAuth";
+ 
+-const CATEGORY_STYLES: Record<string, string> = {
+-  "Audio Briefings": "bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20",
+-  "Case Studies": "bg-[#A8B3C5]/10 text-slate-300 border border-[#A8B3C5]/20",
+-  "Incident Walkthroughs": "bg-[#A8B3C5]/10 text-slate-300 border border-[#A8B3C5]/20",
+-  "Security Talks": "bg-[#A8B3C5]/10 text-slate-300 border border-[#A8B3C5]/20"
+-};
+-
+ const DIFFICULTY_STYLES = {
+   "Beginner": "bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20",
+   "Intermediate": "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20",
+diff --git a/src/app/privacy/page.tsx b/src/app/privacy/page.tsx
+index fc5944c..ea2c475 100644
+--- a/src/app/privacy/page.tsx
++++ b/src/app/privacy/page.tsx
+@@ -1,12 +1,10 @@
+ "use client";
+ 
+-import { useState } from "react";
+ import Navbar from "@/components/Navbar";
+ import Footer from "@/components/Footer";
+ import { Lock, FileText, CheckCircle } from "lucide-react";
+ 
+ export default function PrivacyPage() {
+-  const [isLoggedIn, setIsLoggedIn] = useState(false);
+ 
+   const policySections = [
+     {
+@@ -36,7 +34,7 @@ export default function PrivacyPage() {
+ 
+   return (
+     <>
+-      <Navbar isLoggedIn={isLoggedIn} onToggleLogin={() => setIsLoggedIn((p) => !p)} />
++      <Navbar />
+ 
+       <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA] min-h-screen">
+         
+diff --git a/src/components/Footer.tsx b/src/components/Footer.tsx
+index 07e8437..d4818bf 100644
+--- a/src/components/Footer.tsx
++++ b/src/components/Footer.tsx
+@@ -1,6 +1,6 @@
+ "use client";
+ 
+-import { Shield } from "lucide-react";
++
+ import Link from "next/link";
+ import PlaySecLogo from "@/components/PlaySecLogo";
+ 
+diff --git a/src/components/Hero.tsx b/src/components/Hero.tsx
+index fc5b301..8c99499 100644
+--- a/src/components/Hero.tsx
++++ b/src/components/Hero.tsx
+@@ -3,7 +3,7 @@
+ import Link from "next/link";
+ import { useEffect, useRef, useState } from "react";
+ import { motion, AnimatePresence } from "framer-motion";
+-import { ArrowRight, Check, Activity, Zap, ShieldAlert } from "lucide-react";
++import { ArrowRight, Check, Activity, Zap } from "lucide-react";
+ 
+ // ── Types ─────────────────────────────────────────────────────────────────────
+ interface AttackLog { id: string; time: string; type: string; route: string; }
+@@ -38,12 +38,6 @@ const ATTACK_TYPES = [
+   "APT Activity","Port Scan","Phishing Campaign","Ransomware Delivery",
+   "Zero-Day Exploit","Data Exfiltration","Brute Force","Command Injection",
+ ];
+-const THREAT_STYLE: Record<ThreatLevel,{ text: string }> = {
+-  HIGH:     { text: "text-orange-400" },
+-  MEDIUM:   { text: "text-yellow-400" },
+-  CRITICAL: { text: "text-red-400"    },
+-};
+-
+ // ── Helpers ────────────────────────────────────────────────────────────────────
+ const ri = (min: number, max: number) =>
+   Math.floor(Math.random() * (max - min + 1)) + min;
+@@ -185,7 +179,7 @@ export default function Hero() {
+     };
+   }, [state.ready]);
+ 
+-  const { ready, attacksToday, streams, countries, topCountry, threatLevel, logs, particles, netLines } = state;
++  const { ready, attacksToday, streams, countries, topCountry, logs, particles, netLines } = state;
+ 
+   return (
+     <section className="relative w-full min-h-[85vh] flex items-center border-b border-[#27272A] py-12 md:py-16 select-text bg-[#09090B]">
+diff --git a/src/components/Navbar.tsx b/src/components/Navbar.tsx
+index c575ae5..e81f899 100644
+--- a/src/components/Navbar.tsx
++++ b/src/components/Navbar.tsx
+@@ -13,12 +13,7 @@ import { motion, AnimatePresence } from "framer-motion";
+ import { useAuth } from "@/hooks/useAuth";
+ import PlaySecLogo from "@/components/PlaySecLogo";
+ 
+-interface NavbarProps {
+-  isLoggedIn?: boolean;
+-  onToggleLogin?: () => void;
+-}
+-
+-export default function Navbar({ isLoggedIn: propIsLoggedIn, onToggleLogin }: NavbarProps) {
++export default function Navbar() {
+   const pathname = usePathname();
+   const searchContainerRef = useRef<HTMLDivElement>(null);
+   const profileContainerRef = useRef<HTMLDivElement>(null);
+diff --git a/src/context/AuthContext.tsx b/src/context/AuthContext.tsx
+index fc134c5..4d2b862 100644
+--- a/src/context/AuthContext.tsx
++++ b/src/context/AuthContext.tsx
+@@ -23,22 +23,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
+   useEffect(() => {
+     let mounted = true;
+ 
+-    if (typeof window !== "undefined") {
+-      console.log("[PlaySec Auth] Initializing AuthProvider");
+-      console.log("[PlaySec Auth] Location href:", window.location.href);
+-      console.log("[PlaySec Auth] Supabase URL:", process.env.NEXT_PUBLIC_SUPABASE_URL);
+-      console.log("[PlaySec Auth] Hash exists:", !!window.location.hash);
+-      if (window.location.hash) {
+-        console.log("[PlaySec Auth] URL Hash parameters:", window.location.hash.substring(0, 50) + "...");
+-      }
+-    }
+-
+     // Get initial session
+     supabase.auth.getSession().then(({ data: { session }, error }) => {
+       if (error) {
+         console.error("[PlaySec Auth] getSession error:", error);
+       }
+-      console.log("[PlaySec Auth] getSession resolved. Session user:", session?.user?.email || "No session");
+       if (mounted) {
+         setSession(session);
+         setUser(session?.user ?? null);
+diff --git a/src/services/playbookService.ts b/src/services/playbookService.ts
+index ab85671..8add247 100644
+--- a/src/services/playbookService.ts
++++ b/src/services/playbookService.ts
+@@ -1,5 +1,5 @@
+ import { supabase } from "@/lib/supabase";
+-import { AudioPlaybook, PlaybookLanguageTrack } from "@/types/playbook";
++import { AudioPlaybook } from "@/types/playbook";
+ 
+ const isEnvMissing = () => {
+   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+@@ -80,12 +80,12 @@ export const playbookService = {
+           .eq("playbook_id", playbook.id);
+ 
+         if (!langError && langData && langData.length > 0) {
+-          playbook.languages = langData.map((l: any) => ({
++          playbook.languages = langData.map((l: Record<string, string | undefined>) => ({
+             id: l.id,
+             playbook_id: l.playbook_id,
+-            language: normalizeLanguageName(l.language),
+-            audio_url: l.audio_url,
+-            download_url: l.download_url || l.audio_url,
++            language: normalizeLanguageName(l.language || "English"),
++            audio_url: l.audio_url || playbook.audio_url,
++            download_url: l.download_url || l.audio_url || playbook.audio_url,
+             transcript: l.transcript || "",
+             duration: l.duration || playbook.duration
+           }));

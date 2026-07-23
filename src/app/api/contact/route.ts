@@ -44,7 +44,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    let { targetType, formType, name, email, feedbackType, rating, subject, priority, message } = body;
+    const { targetType, formType, rating } = body;
+    let { name, email, feedbackType, subject, priority, message } = body;
 
     const isFeedback = targetType === "feedback" || (formType || "").toLowerCase() === "feedback";
 
