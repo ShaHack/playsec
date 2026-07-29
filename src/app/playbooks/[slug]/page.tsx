@@ -12,6 +12,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
 import { downloadFile } from "@/utils/download";
+import { preloadAudioTrack, preloadPlaybookAudioTracks } from "@/utils/audioPreloader";
 import { 
   Play, Pause, Volume2, Bookmark, Share2, 
   ChevronRight, Calendar, Globe,
@@ -87,6 +88,13 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     loadPlaybook();
   }, [slug]);
 
+  // Immediately preload all audio language tracks in background upon loading playbook
+  useEffect(() => {
+    if (playbook) {
+      preloadPlaybookAudioTracks(playbook.languages);
+    }
+  }, [playbook]);
+
   // Auto-resume pending action after authentication
   useEffect(() => {
     if (!isLoggedIn || !playbook) return;
@@ -122,9 +130,19 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     localStorage.setItem("playsec_audio_lang", lang);
     setToastMsg(`Switched briefing audio to ${lang}`);
     setTimeout(() => setToastMsg(""), 3000);
-    if (isPlaying) {
-      setIsPlaying(false);
-      setTimeout(() => setIsPlaying(true), 150);
+
+    const targetTrack = playbook?.languages?.find(
+      (l) => l.language.toLowerCase() === lang.toLowerCase()
+    );
+    if (targetTrack?.audio_url) {
+      preloadAudioTrack(targetTrack.audio_url, "auto");
+    }
+
+    if (audioRef.current) {
+      audioRef.current.load();
+      if (isPlaying) {
+        audioRef.current.play().catch(() => {});
+      }
     }
   };
 
@@ -398,11 +416,13 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                     <audio 
                       ref={audioRef}
                       src={activeAudioUrl} 
+                      preload="auto"
+                      crossOrigin="anonymous"
                       onTimeUpdate={() => {
                         if (audioRef.current) {
                           const cur = audioRef.current.currentTime;
                           const dur = audioRef.current.duration || 1;
-                          setCurrentTimeSec(cur);
+                          setCurrentTimeSec(Math.floor(cur));
                           setProgress((cur / dur) * 100);
                         }
                       }}

@@ -7,8 +7,9 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { playbookService } from "@/services/playbookService";
 import { AudioPlaybook } from "@/types/playbook";
+import { preloadAudioTrack } from "@/utils/audioPreloader";
 import { 
-  Search, X, Volume2, Calendar, Users, Globe, Bookmark, Play
+  Search, X, Volume2, Calendar, Users, Bookmark, Play
 } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 
@@ -122,7 +123,7 @@ export default function PlaybooksLibrary() {
               <p className="text-xs text-[#A8B3C5]">Querying briefings registry...</p>
             </div>
           ) : playbooksList.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {playbooksList.map((p) => {
                 const difficultyStyle = DIFFICULTY_STYLES[p.difficulty] || "bg-[#141A22] text-[#A8B3C5] border border-[#2A3442]";
                 const displayDate = p.updated_date
@@ -133,97 +134,85 @@ export default function PlaybooksLibrary() {
                 return (
                   <div
                     key={p.id}
-                    className="group flex flex-col rounded-lg border border-[#2A3442] bg-[#141A22] hover:border-[#3B82F6] hover:shadow-[0_0_15px_rgba(59,130,246,0.15)] hover:-translate-y-1 transition-all duration-200 overflow-hidden shadow-sm"
+                    className="group flex flex-col rounded-xl border border-[#2A3442] bg-[#141A22]/90 backdrop-blur-sm hover:border-[#3B82F6]/50 hover:shadow-[0_4px_20px_rgba(59,130,246,0.12)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
                   >
-                    {/* Cover Image Thumbnail */}
-                    <div className="relative h-40 w-full bg-[#0B0F14] overflow-hidden border-b border-[#2A3442] select-none flex items-center justify-center">
+                    {/* Fixed 16:9 Aspect Ratio Header Image Container */}
+                    <div className="relative aspect-video w-full bg-[#0B0F14] overflow-hidden border-b border-[#2A3442]/60 select-none rounded-t-xl flex items-center justify-center">
                       {p.cover_image ? (
-                        <>
-                          {/* Ambient backdrop for aspect ratio fitting */}
-                          <Image
-                            src={p.cover_image}
-                            alt=""
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-cover blur-md opacity-30 scale-110 pointer-events-none"
-                            unoptimized
-                          />
-                          {/* Main crisp cover image */}
-                          <Image
-                            src={p.cover_image}
-                            alt={p.title}
-                            fill
-                            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
-                            className="object-contain object-center relative z-10 transition-transform duration-300 group-hover:scale-105 p-1.5"
-                            unoptimized
-                          />
-                        </>
+                        <Image
+                          src={p.cover_image}
+                          alt={p.title}
+                          fill
+                          sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                          className="object-cover object-center transition-transform duration-300 ease-out group-hover:scale-105"
+                          unoptimized
+                        />
                       ) : (
                         <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
-                          <Volume2 className="h-8 w-8" />
+                          <Volume2 className="h-7 w-7 opacity-70" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#0B0F14] via-transparent to-black/20 pointer-events-none z-10" />
+                      <div className="absolute inset-0 bg-gradient-to-t from-[#141A22] via-transparent to-black/30 pointer-events-none z-10" />
                       
                       {/* Difficulty Badge */}
-                      <span className={`absolute top-3 left-3 z-20 px-2 py-0.5 rounded text-[8px] font-bold uppercase tracking-wider ${difficultyStyle}`}>
+                      <span className={`absolute top-2.5 left-2.5 z-20 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${difficultyStyle}`}>
                         {p.difficulty}
+                      </span>
+
+                      {/* Duration Chip */}
+                      <span className="absolute top-2.5 right-2.5 z-20 bg-[#0B0F14]/80 text-[#3B82F6] backdrop-blur-md px-2 py-0.5 rounded-full text-[9px] font-mono font-medium border border-[#2A3442]/60 flex items-center gap-1">
+                        <Volume2 className="h-2.5 w-2.5" />
+                        {p.duration}
                       </span>
                     </div>
 
-                    <div className="p-4 flex-1 flex flex-col justify-between">
+                    {/* Card Body */}
+                    <div className="p-3.5 flex-1 flex flex-col justify-between">
                       <div>
-                        {/* Specs & Date row */}
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 text-[9px] font-semibold text-[#A8B3C5] select-none">
-                          <span className="flex items-center gap-1">
-                            <Volume2 className="h-3 w-3 text-[#3B82F6]" />
-                            {p.duration}
+                        {/* Title */}
+                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug mb-1 group-hover:text-[#3B82F6] transition-colors line-clamp-1">
+                          {p.title}
+                        </h3>
+
+                        {/* Author & Date Metadata */}
+                        <div className="flex items-center gap-2 mb-2 text-[9px] text-[#A8B3C5]/80 select-none">
+                          <span className="flex items-center gap-1 truncate max-w-[120px]">
+                            <Users className="h-2.5 w-2.5 text-slate-500 shrink-0" />
+                            {p.author}
                           </span>
+                          <span>•</span>
                           <span className="flex items-center gap-1 font-mono">
-                            <Calendar className="h-3 w-3 text-slate-500" />
+                            <Calendar className="h-2.5 w-2.5 text-slate-500 shrink-0" />
                             {displayDate}
                           </span>
                         </div>
 
-                        {/* Title */}
-                        <h3 className="text-sm font-bold text-white tracking-tight leading-snug mb-1.5 group-hover:text-[#3B82F6] transition-colors line-clamp-2 min-h-[40px]">
-                          {p.title}
-                        </h3>
-
-                        {/* Details row: Author/Language */}
-                        <div className="flex items-center gap-2 mb-2 text-[9px] text-[#A8B3C5] select-none">
-                          <Users className="h-3 w-3 text-slate-500 shrink-0" />
-                          <span className="truncate max-w-[130px]">{p.author}</span>
-                          <span>•</span>
-                          <Globe className="h-3 w-3 text-slate-500 shrink-0" />
-                          <span>{p.language}</span>
-                        </div>
-
-                        {/* Short Description */}
-                        <p className="text-xs text-[#A8B3C5] leading-relaxed mb-4 line-clamp-2 min-h-[32px]">
+                        {/* Description */}
+                        <p className="text-[11px] text-[#A8B3C5]/90 leading-relaxed mb-3 line-clamp-2">
                           {p.description}
                         </p>
                       </div>
 
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-2 pt-3 border-t border-[#2A3442]/60">
+                      {/* Action Footer */}
+                      <div className="flex items-center gap-2 pt-2.5 border-t border-[#2A3442]/40">
                         <Link
                           href={`/playbooks/${p.slug}`}
                           onMouseEnter={() => {
                             playbookService.getPlaybookBySlug(p.slug);
+                            if (p.audio_url) preloadAudioTrack(p.audio_url, "metadata");
                           }}
-                          className="flex-1 h-8 rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none shadow-none"
+                          className="flex-1 h-7.5 rounded-lg bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none shadow-sm shadow-blue-500/20"
                         >
-                          <Play className="h-3.5 w-3.5 fill-white" />
+                          <Play className="h-3 w-3 fill-white" />
                           Listen
                         </Link>
                         
                         <button
                           onClick={(e) => handleBookmarkToggle(p.id, e)}
-                          className={`h-8 w-8 rounded border flex items-center justify-center transition-all select-none ${
+                          className={`h-7.5 w-7.5 rounded-lg border flex items-center justify-center transition-all select-none ${
                             isBookmarked 
                               ? "bg-[#3B82F6]/15 border-[#3B82F6] text-[#3B82F6]"
-                              : "bg-[#0B0F14] border-[#2A3442] text-[#A8B3C5] hover:text-white"
+                              : "bg-[#0B0F14] border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500"
                           }`}
                           title="Bookmark briefing"
                         >
