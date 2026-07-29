@@ -3,6 +3,7 @@
 import { useState, useEffect, use, useRef } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
+import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { playbookService } from "@/services/playbookService";
@@ -10,6 +11,7 @@ import { AudioPlaybook } from "@/types/playbook";
 import { motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
+import { downloadFile } from "@/utils/download";
 import { 
   Play, Pause, Volume2, Bookmark, Share2, 
   ChevronRight, Calendar, Globe,
@@ -102,7 +104,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
           return () => clearTimeout(timer);
         } else if (action.type === "download" && action.url) {
           localStorage.removeItem("playsec_pending_action");
-          window.open(action.url, "_blank");
+          downloadFile(action.url, `${playbook.title}_${selectedLanguage}`);
           const timer = setTimeout(() => {
             setToastMsg("Welcome! Download started automatically.");
             setTimeout(() => setToastMsg(""), 3500);
@@ -113,7 +115,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     } catch {
       // Silently ignore storage errors
     }
-  }, [isLoggedIn, playbook, slug]);
+  }, [isLoggedIn, playbook, slug, selectedLanguage]);
 
   const handleLanguageChange = (lang: "English" | "Tamil" | "Hindi") => {
     setSelectedLanguage(lang);
@@ -320,14 +322,28 @@ export default function PlaybookSlugPage({ params }: PageProps) {
           {/* SPOTIFY-STYLE AUDIO BOARD */}
           <section className="rounded border border-[#2A3442] bg-[#141A22] p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-center shadow-sm">
             {/* Playbook Cover Art */}
-            <div className="relative h-44 w-44 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none">
+            <div className="relative h-44 w-44 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none flex items-center justify-center">
               {playbook.cover_image ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img 
-                  src={playbook.cover_image} 
-                  alt={playbook.title} 
-                  className="h-full w-full object-cover"
-                />
+                <>
+                  <Image
+                    src={playbook.cover_image}
+                    alt=""
+                    fill
+                    sizes="176px"
+                    className="object-cover blur-lg opacity-35 scale-125 pointer-events-none"
+                    unoptimized
+                    priority
+                  />
+                  <Image 
+                    src={playbook.cover_image} 
+                    alt={playbook.title} 
+                    fill
+                    sizes="176px"
+                    className="object-contain object-center relative z-10 p-1.5"
+                    unoptimized
+                    priority
+                  />
+                </>
               ) : (
                 <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
                   <BookOpen className="h-8 w-8" />
@@ -537,7 +553,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                         return;
                       }
 
-                      window.open(downloadUrl, "_blank");
+                      downloadFile(downloadUrl, `${playbook.title}_${selectedLanguage}`);
                     }}
                     className="flex h-8 items-center gap-1.5 px-3 rounded border border-[#2A3442] bg-[#0B0F14] hover:border-slate-500 hover:text-white text-[#F3F4F6] transition-all select-none cursor-pointer"
                   >

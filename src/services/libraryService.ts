@@ -1,6 +1,9 @@
 import { supabase } from "@/lib/supabase";
 import { LibraryResource } from "@/types/library";
 
+const CACHE_TTL_MS = 5 * 60 * 1000;
+const libraryCache = new Map<string, { data: LibraryResource[]; timestamp: number }>();
+
 const isEnvMissing = () => {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
@@ -11,6 +14,12 @@ export const libraryService = {
   async getAllResources(searchQuery?: string, categoryFilter?: string): Promise<LibraryResource[]> {
     if (isEnvMissing()) {
       throw new Error("Supabase configuration missing.");
+    }
+
+    const cacheKey = `${searchQuery?.trim() || ""}:${categoryFilter || "All"}`;
+    const cached = libraryCache.get(cacheKey);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS)) {
+      return cached.data;
     }
 
     try {
@@ -39,7 +48,10 @@ export const libraryService = {
         throw new Error("No resources have been published yet.");
       }
 
-      return data.map(mapDbToResource);
+      const mapped = data.map(mapDbToResource);
+      libraryCache.set(cacheKey, { data: mapped, timestamp: Date.now() });
+
+      return mapped;
     } catch (e: unknown) {
       const err = e as Error;
       if (

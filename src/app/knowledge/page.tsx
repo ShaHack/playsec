@@ -7,6 +7,8 @@ import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
 import { Search, X, BookOpen, ExternalLink, Download, FileText } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import { downloadFile } from "@/utils/download";
+import Image from "next/image";
 
 export default function KnowledgeLibrary() {
   const { isLoggedIn, loginWithGoogle } = useAuth();
@@ -136,21 +138,32 @@ export default function KnowledgeLibrary() {
                   className="group rounded border border-[#2A3442] bg-[#141A22] p-5 flex gap-5 hover:border-slate-500 transition-all duration-200"
                 >
                   {/* Thumbnail representing resource */}
-                  <div className="relative h-28 w-24 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none">
+                  <div className="relative h-28 w-24 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none flex items-center justify-center">
                     {item.thumbnail ? (
-                      // eslint-disable-next-line @next/next/no-img-element
-                      <img
-                        src={item.thumbnail}
-                        alt={item.title}
-                        className="h-full w-full object-cover"
-                        loading="lazy"
-                      />
+                      <>
+                        <Image
+                          src={item.thumbnail}
+                          alt=""
+                          fill
+                          sizes="96px"
+                          className="object-cover blur-sm opacity-35 scale-110 pointer-events-none"
+                          unoptimized
+                        />
+                        <Image
+                          src={item.thumbnail}
+                          alt={item.title}
+                          fill
+                          sizes="96px"
+                          className="object-contain object-center relative z-10 p-1"
+                          unoptimized
+                        />
+                      </>
                     ) : (
                       <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
                         <FileText className="h-8 w-8" />
                       </div>
                     )}
-                    <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[8px] font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
+                    <span className="absolute top-2 left-2 z-20 px-1.5 py-0.5 rounded text-[8px] font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
                       {item.file_type.toUpperCase()}
                     </span>
                   </div>
@@ -186,24 +199,20 @@ export default function KnowledgeLibrary() {
                         Open PDF
                       </a>
                       <span className="text-slate-650">•</span>
-                      <a
-                        href={isLoggedIn ? item.file_url : "#"}
-                        download={isLoggedIn}
+                      <button
                         onClick={(e) => {
+                          e.preventDefault();
                           if (!isLoggedIn) {
-                            e.preventDefault();
                             loginWithGoogle();
                             return;
                           }
-                          if (item.file_url.startsWith("http")) return;
-                          e.preventDefault();
-                          alert(`Downloading document: ${item.title}...`);
+                          downloadFile(item.file_url, item.title);
                         }}
-                        className="text-[#A8B3C5] hover:text-white flex items-center gap-1"
+                        className="text-[#A8B3C5] hover:text-white flex items-center gap-1 cursor-pointer"
                       >
                         <Download className="h-3.5 w-3.5" />
                         Download
-                      </a>
+                      </button>
                     </div>
                   </div>
                 </div>

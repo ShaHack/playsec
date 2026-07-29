@@ -7,16 +7,28 @@ const isEnvMissing = () => {
   return !url || !key || url.includes("placeholder-project-id") || key.includes("placeholder-signature");
 };
 
+// In-memory cache for ultra-fast page transitions & instant refresh
+const CACHE_TTL_MS = 5 * 60 * 1000; // 5 minutes
+const playbookCache = new Map<string, { data: AudioPlaybook; timestamp: number }>();
+let allPlaybooksCache: { data: AudioPlaybook[]; timestamp: number } | null = null;
+
 export const playbookService = {
   async getAllPlaybooks(searchQuery?: string): Promise<AudioPlaybook[]> {
     if (isEnvMissing()) {
       throw new Error("Supabase configuration missing.");
     }
 
+    const trimmedQuery = searchQuery?.trim() || "";
+
+    // Return cached list if available and query is empty
+    if (!trimmedQuery && allPlaybooksCache && (Date.now() - allPlaybooksCache.timestamp < CACHE_TTL_MS)) {
+      return allPlaybooksCache.data;
+    }
+
     try {
       let query = supabase.from("playbooks").select("*").eq("published", true);
-      if (searchQuery && searchQuery.trim()) {
-        const sanitized = searchQuery.replace(/[^a-zA-Z0-9\s-_]/g, "").trim();
+      if (trimmedQuery) {
+        const sanitized = trimmedQuery.replace(/[^a-zA-Z0-9\s-_]/g, "").trim();
         if (sanitized) {
           query = query.or(`title.ilike.%${sanitized}%,description.ilike.%${sanitized}%,slug.ilike.%${sanitized}%`);
         }
@@ -34,7 +46,19 @@ export const playbookService = {
         throw new Error("No resources have been published yet.");
       }
 
-      return data.map(mapDbToPlaybook);
+      const mapped = data.map(mapDbToPlaybook);
+
+      // Populate individual item cache and allPlaybooksCache
+      if (!trimmedQuery) {
+        allPlaybooksCache = { data: mapped, timestamp: Date.now() };
+        mapped.forEach((item) => {
+          if (item.slug) {
+            playbookCache.set(item.slug, { data: item, timestamp: Date.now() });
+          }
+        });
+      }
+
+      return mapped;
     } catch (e: unknown) {
       const err = e as Error;
       if (
@@ -54,6 +78,12 @@ export const playbookService = {
       throw new Error("Supabase configuration missing.");
     }
 
+    // Instant cache return
+    const cached = playbookCache.get(slug);
+    if (cached && (Date.now() - cached.timestamp < CACHE_TTL_MS) && cached.data.languages && cached.data.languages.length > 0) {
+      return cached.data;
+    }
+
     try {
       const { data: playbookData, error: playbookError } = await supabase
         .from("playbooks")
@@ -71,7 +101,6 @@ export const playbookService = {
 
       const playbook = mapDbToPlaybook(playbookData);
 
-      // Fetch language tracks from playbook_languages table
       try {
         const { data: langData, error: langError } = await supabase
           .from("playbook_languages")
@@ -89,7 +118,6 @@ export const playbookService = {
             duration: l.duration || playbook.duration
           }));
         } else {
-          // Fallback: create default English track from main playbook row
           playbook.languages = [
             {
               language: "English",
@@ -110,6 +138,9 @@ export const playbookService = {
         ];
       }
 
+      // Store in memory cache
+      playbookCache.set(slug, { data: playbook, timestamp: Date.now() });
+
       return playbook;
     } catch (e: unknown) {
       const err = e as Error;
@@ -122,6 +153,11 @@ export const playbookService = {
       }
       throw new Error("Unable to connect to PlaySec servers.");
     }
+  },
+
+  clearCache() {
+    playbookCache.clear();
+    allPlaybooksCache = null;
   }
 };
 

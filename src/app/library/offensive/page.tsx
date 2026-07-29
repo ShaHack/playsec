@@ -8,6 +8,8 @@ import { LibraryResource } from "@/types/library";
 import { Search, X, BookOpen, ExternalLink, Download, FileText, Bookmark, Calendar, User } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
+import { downloadFile } from "@/utils/download";
+import Image from "next/image";
 
 export default function OffensiveLibrary() {
   const { isLoggedIn } = useAuth();
@@ -40,7 +42,7 @@ export default function OffensiveLibrary() {
         const action = JSON.parse(saved);
         if (action.type === "download" && action.url) {
           localStorage.removeItem("playsec_pending_action");
-          window.open(action.url, "_blank");
+          downloadFile(action.url, action.title);
         }
       }
     } catch {
@@ -187,21 +189,32 @@ export default function OffensiveLibrary() {
                     className="group rounded border border-[#2A3442] bg-[#141A22] p-5 flex flex-col sm:flex-row gap-5 hover:border-slate-500 transition-all duration-200"
                   >
                     {/* Thumbnail */}
-                    <div className="relative h-28 w-24 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none mx-auto sm:mx-0">
+                    <div className="relative h-28 w-24 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none mx-auto sm:mx-0 flex items-center justify-center">
                       {item.thumbnail ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img
-                          src={item.thumbnail}
-                          alt={item.title}
-                          className="h-full w-full object-cover"
-                          loading="lazy"
-                        />
+                        <>
+                          <Image
+                            src={item.thumbnail}
+                            alt=""
+                            fill
+                            sizes="96px"
+                            className="object-cover blur-sm opacity-35 scale-110 pointer-events-none"
+                            unoptimized
+                          />
+                          <Image
+                            src={item.thumbnail}
+                            alt={item.title}
+                            fill
+                            sizes="96px"
+                            className="object-contain object-center relative z-10 p-1"
+                            unoptimized
+                          />
+                        </>
                       ) : (
                         <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
                           <FileText className="h-8 w-8" />
                         </div>
                       )}
-                      <span className="absolute top-2 left-2 px-1.5 py-0.5 rounded text-[8px] font-bold bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20">
+                      <span className="absolute top-2 left-2 z-20 px-1.5 py-0.5 rounded text-[8px] font-bold bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20">
                         {item.file_type.toUpperCase()}
                       </span>
                     </div>
@@ -267,12 +280,10 @@ export default function OffensiveLibrary() {
                             Preview
                           </a>
                           
-                          <a
-                            href={isLoggedIn ? item.file_url : "#"}
-                            download={isLoggedIn}
+                          <button
                             onClick={(e) => {
+                              e.preventDefault();
                               if (!isLoggedIn) {
-                                e.preventDefault();
                                 setAuthModal({
                                   isOpen: true,
                                   title: "Sign in required to download file",
@@ -281,15 +292,13 @@ export default function OffensiveLibrary() {
                                 });
                                 return;
                               }
-                              if (item.file_url.startsWith("http")) return;
-                              e.preventDefault();
-                              window.open(item.file_url, "_blank");
+                              downloadFile(item.file_url, item.title);
                             }}
                             className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-slate-350 hover:text-white hover:border-slate-500 flex items-center gap-1.5 cursor-pointer"
                           >
                             <Download className="h-3.5 w-3.5" />
                             Download
-                          </a>
+                          </button>
 
                           <button
                             onClick={() => {
