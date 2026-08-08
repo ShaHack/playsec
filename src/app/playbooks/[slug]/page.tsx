@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, use, useRef } from "react";
+import { useState, useEffect, use, useRef, useMemo } from "react";
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import Image from "next/image";
@@ -15,7 +15,7 @@ import { downloadFile } from "@/utils/download";
 import { preloadAudioTrack, preloadPlaybookAudioTracks } from "@/utils/audioPreloader";
 import { 
   Play, Pause, Volume2, Bookmark, Share2, 
-  ChevronRight, Calendar, Globe,
+  ChevronRight, Calendar, Globe, Loader2,
   RotateCcw, RotateCw, Check, Download, Info, CheckCircle2, BookOpen
 } from "lucide-react";
 
@@ -55,7 +55,10 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     return "English";
   });
   
-  // Audio Player State
+  // Audio Player State & Version Refs
+  type PlayerStatus = "idle" | "loading" | "playing" | "paused" | "ended" | "error";
+
+  const [playerStatus, setPlayerStatus] = useState<PlayerStatus>("idle");
   const [isPlaying, setIsPlaying] = useState(false);
   const [progress, setProgress] = useState(0);
   const [currentTimeSec, setCurrentTimeSec] = useState(0);
@@ -64,6 +67,25 @@ export default function PlaybookSlugPage({ params }: PageProps) {
   const [volume, setVolume] = useState(80);
   
   const audioRef = useRef<HTMLAudioElement | null>(null);
+  const wasPlayingRef = useRef(false);
+  const requestIdRef = useRef(0);
+
+  // Derived active track URL based on selectedLanguage & playbook
+  const availableLanguages = useMemo(() => {
+    if (!playbook) return [];
+    return playbook.languages && playbook.languages.length > 0
+      ? playbook.languages
+      : [
+          {
+            language: playbook.language || "English",
+            audio_url: playbook.audio_url || "",
+            download_url: playbook.audio_url || "",
+            duration: playbook.duration || "08:15"
+          }
+        ];
+  }, [playbook]);
+
+
 
   // Load Playbook & Related dynamic briefings
   useEffect(() => {
@@ -104,8 +126,14 @@ export default function PlaybookSlugPage({ params }: PageProps) {
         const action = JSON.parse(saved);
         if (action.type === "play" && action.slug === slug) {
           localStorage.removeItem("playsec_pending_action");
+          wasPlayingRef.current = true;
           const timer = setTimeout(() => {
-            setIsPlaying(true);
+            if (audioRef.current) {
+              audioRef.current.play().then(() => {
+                setIsPlaying(true);
+                setPlayerStatus("playing");
+              }).catch(() => {});
+            }
             setToastMsg("Welcome! Playback started automatically.");
             setTimeout(() => setToastMsg(""), 3500);
           }, 0);
@@ -125,24 +153,89 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     }
   }, [isLoggedIn, playbook, slug, selectedLanguage]);
 
+  // Multilingual Language Switching Engine
   const handleLanguageChange = (lang: "English" | "Tamil" | "Hindi") => {
+    if (lang === selectedLanguage) return;
+
+    // 1. Capture whether current track was playing or intended to play
+    const wasPlaying = isPlaying || playerStatus === "playing";
+    wasPlayingRef.current = wasPlaying;
+
+    // 2. Increment request ID to invalidate any stale async callbacks from previous tracks
+    requestIdRef.current++;
+
+    // 3. Immediately update selected language state and show feedback
     setSelectedLanguage(lang);
     localStorage.setItem("playsec_audio_lang", lang);
     setToastMsg(`Switched briefing audio to ${lang}`);
     setTimeout(() => setToastMsg(""), 3000);
 
-    const targetTrack = playbook?.languages?.find(
+    // 4. Synchronously reset player states (00:00, 0%, clear old duration, set loading)
+    setPlayerStatus("loading");
+    setIsPlaying(false);
+    setCurrentTimeSec(0);
+    setProgress(0);
+    setDurationSec(0);
+
+    // 5. Preload target language track
+    const targetTrack = availableLanguages.find(
       (l) => l.language.toLowerCase() === lang.toLowerCase()
     );
-    if (targetTrack?.audio_url) {
-      preloadAudioTrack(targetTrack.audio_url, "auto");
+    const newAudioUrl = targetTrack?.audio_url || playbook?.audio_url || "";
+    if (newAudioUrl) {
+      preloadAudioTrack(newAudioUrl, "auto");
     }
 
-    if (audioRef.current) {
-      audioRef.current.load();
-      if (isPlaying) {
-        audioRef.current.play().catch(() => {});
+    // 6. Explicitly reset and reload underlying HTMLAudioElement synchronously
+    const audio = audioRef.current;
+    if (audio) {
+      audio.pause();
+      try {
+        audio.currentTime = 0;
+      } catch {
+        // Ignore setting currentTime before source load
       }
+      audio.src = newAudioUrl;
+      audio.load();
+    }
+  };
+
+  // Dedicated Play/Pause Toggle Handler
+  const togglePlayPause = () => {
+    if (!isLoggedIn) {
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to play audio",
+        message: "Please sign in with Google to stream full Audio Playbooks and sync your playback progress.",
+        pendingAction: { type: "play", slug },
+      });
+      return;
+    }
+
+    const audio = audioRef.current;
+    if (!audio) return;
+
+    if (isPlaying || playerStatus === "playing") {
+      audio.pause();
+      setIsPlaying(false);
+      setPlayerStatus("paused");
+      wasPlayingRef.current = false;
+    } else {
+      if (playerStatus === "ended" || progress >= 100) {
+        audio.currentTime = 0;
+        setCurrentTimeSec(0);
+        setProgress(0);
+      }
+
+      audio.play().then(() => {
+        setIsPlaying(true);
+        setPlayerStatus("playing");
+        wasPlayingRef.current = true;
+      }).catch(() => {
+        setIsPlaying(false);
+        setPlayerStatus("paused");
+        wasPlayingRef.current = false;
+      });
     }
   };
 
@@ -309,20 +402,23 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                       (l) => l.language.toLowerCase() === lang.toLowerCase()
                     );
                     const isAvailable = Boolean(track && track.audio_url);
+                    const isSelected = selectedLanguage.toLowerCase() === lang.toLowerCase();
 
                     return (
                       <button
                         key={lang}
                         disabled={!isAvailable}
+                        aria-pressed={isSelected}
+                        aria-label={!isAvailable ? `${lang} audio briefing unavailable` : `Switch audio briefing language to ${lang}`}
                         onClick={() => {
                           if (isAvailable) {
                             handleLanguageChange(lang);
                           }
                         }}
-                        className={`px-3 py-1 rounded text-xs font-bold transition-all select-none ${
+                        className={`px-3 py-1 rounded text-xs font-bold transition-all select-none focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${
                           !isAvailable
                             ? "bg-[#0B0F14]/50 border border-[#2A3442]/40 text-slate-600 cursor-not-allowed opacity-50"
-                            : selectedLanguage.toLowerCase() === lang.toLowerCase()
+                            : isSelected
                             ? "bg-[#3B82F6] text-white shadow cursor-pointer"
                             : "bg-[#0B0F14] border border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500 cursor-pointer"
                         }`}
@@ -419,22 +515,50 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                       preload="auto"
                       crossOrigin="anonymous"
                       onTimeUpdate={() => {
-                        if (audioRef.current) {
-                          const cur = audioRef.current.currentTime;
-                          const dur = audioRef.current.duration || 1;
-                          setCurrentTimeSec(Math.floor(cur));
-                          setProgress((cur / dur) * 100);
+                        if (!audioRef.current || playerStatus === "loading") return;
+                        const cur = audioRef.current.currentTime;
+                        const dur = audioRef.current.duration || durationSec || 1;
+                        setCurrentTimeSec(Math.floor(cur));
+                        if (dur > 0) {
+                          setProgress(Math.min(100, (cur / dur) * 100));
                         }
                       }}
                       onLoadedMetadata={() => {
-                        if (audioRef.current) {
-                          setDurationSec(audioRef.current.duration || 0);
+                        if (!audioRef.current) return;
+                        const dur = audioRef.current.duration;
+                        if (dur && !isNaN(dur) && dur > 0) {
+                          setDurationSec(Math.floor(dur));
+                        }
+                      }}
+                      onCanPlay={() => {
+                        if (!audioRef.current) return;
+                        if (wasPlayingRef.current) {
+                          audioRef.current.play().then(() => {
+                            setIsPlaying(true);
+                            setPlayerStatus("playing");
+                          }).catch(() => {
+                            setIsPlaying(false);
+                            setPlayerStatus("paused");
+                            wasPlayingRef.current = false;
+                          });
+                        } else {
+                          setIsPlaying(false);
+                          setPlayerStatus("paused");
                         }
                       }}
                       onEnded={() => {
                         setIsPlaying(false);
-                        setProgress(0);
-                        setCurrentTimeSec(0);
+                        setPlayerStatus("ended");
+                        wasPlayingRef.current = false;
+                        setProgress(100);
+                        if (audioRef.current && audioRef.current.duration) {
+                          setCurrentTimeSec(Math.floor(audioRef.current.duration));
+                        }
+                      }}
+                      onError={() => {
+                        setIsPlaying(false);
+                        setPlayerStatus("error");
+                        wasPlayingRef.current = false;
                       }}
                     />
                     
@@ -451,7 +575,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                       />
                       <div className="flex justify-between text-[10px] text-[#A8B3C5] font-mono">
                         <span>{formatTime(currentTimeSec)}</span>
-                        <span>{formatTime(durationSec)}</span>
+                        <span>{playerStatus === "loading" ? "Loading..." : formatTime(durationSec)}</span>
                       </div>
                     </div>
 
@@ -485,22 +609,18 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                         </button>
 
                         <button 
-                          onClick={() => {
-                            if (!isLoggedIn) {
-                              setAuthModal({
-                                isOpen: true,
-                                title: "Sign in required to play audio",
-                                message: "Please sign in with Google to stream full Audio Playbooks and sync your playback progress.",
-                                pendingAction: { type: "play", slug },
-                              });
-                              return;
-                            }
-                            setIsPlaying(prev => !prev);
-                          }}
-                          className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 text-white flex items-center justify-center shadow-none transition-all focus:outline-none cursor-pointer"
-                          aria-label={isPlaying ? "Pause audio playback" : "Play audio playback"}
+                          onClick={togglePlayPause}
+                          disabled={playerStatus === "loading"}
+                          className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 disabled:opacity-70 text-white flex items-center justify-center shadow-none transition-all focus:outline-none cursor-pointer"
+                          aria-label={playerStatus === "playing" || isPlaying ? "Pause audio playback" : "Play audio playback"}
                         >
-                          {isPlaying ? <Pause className="h-4 w-4 fill-white" /> : <Play className="h-4 w-4 fill-white ml-0.5" />}
+                          {playerStatus === "loading" ? (
+                            <Loader2 className="h-4 w-4 animate-spin text-white" />
+                          ) : playerStatus === "playing" || isPlaying ? (
+                            <Pause className="h-4 w-4 fill-white" />
+                          ) : (
+                            <Play className="h-4 w-4 fill-white ml-0.5" />
+                          )}
                         </button>
 
                         <button 
