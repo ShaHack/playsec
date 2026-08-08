@@ -1,40 +1,69 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
-import { Search, X, BookOpen, ExternalLink, Download, FileText } from "lucide-react";
+import { Search, X, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
+import AuthModal from "@/components/AuthModal";
 import { downloadFile } from "@/utils/download";
-import Image from "next/image";
+import LibraryResourceRow from "@/components/LibraryResourceRow";
+
+const KNOWLEDGE_CATEGORIES = [
+  "All",
+  "Offensive Security",
+  "Defensive Security",
+  "PDF Guide",
+  "Cheat Sheet"
+];
 
 export default function KnowledgeLibrary() {
-  const { isLoggedIn, loginWithGoogle } = useAuth();
-  const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
+  const { isLoggedIn } = useAuth();
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
+  const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [authModal, setAuthModal] = useState<{
+    isOpen: boolean;
+    title: string;
+    message: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    pendingAction: any;
+  }>({
+    isOpen: false,
+    title: "",
+    message: "",
+    pendingAction: null,
+  });
 
   useEffect(() => {
     async function loadData() {
       setLoading(true);
       setErrorMsg("");
       try {
-        const data = await libraryService.getAllResources(searchQuery);
-        setRawResources(data);
-        if (selectedCategory !== "All") {
-          setResources(data.filter(item => item.category === selectedCategory));
-        } else {
-          setResources(data);
-        }
+        const domainFilter =
+          selectedCategory === "Offensive Security"
+            ? "offensive"
+            : selectedCategory === "Defensive Security"
+            ? "defensive"
+            : "all";
+
+        const typeFilter =
+          selectedCategory !== "All" &&
+          selectedCategory !== "Offensive Security" &&
+          selectedCategory !== "Defensive Security"
+            ? selectedCategory
+            : undefined;
+
+        const data = await libraryService.getAllResources(searchQuery, domainFilter, typeFilter);
+        setResources(data);
       } catch (err: unknown) {
         setErrorMsg((err as Error).message || "Failed to retrieve operational resources.");
         setResources([]);
-        setRawResources([]);
       } finally {
         setLoading(false);
       }
@@ -42,28 +71,66 @@ export default function KnowledgeLibrary() {
     loadData();
   }, [searchQuery, selectedCategory]);
 
-  const categoriesList = useMemo(() => {
-    const unique = new Set(rawResources.map(r => r.category).filter(Boolean));
-    return ["All", ...Array.from(unique)];
-  }, [rawResources]);
+  const handleBookmarkToggle = (id: string) => {
+    if (!isLoggedIn) {
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to bookmark",
+        message: "Please sign in with Google to save resources to your bookmarks.",
+        pendingAction: null,
+      });
+      return;
+    }
+    setBookmarkedIds((prev) => 
+      prev.includes(id) ? prev.filter(bId => bId !== id) : [...prev, id]
+    );
+  };
+
+  const handleOpen = (item: LibraryResource, e: React.MouseEvent) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to open resource",
+        message: "Please sign in with Google to access security resources and documentation.",
+        pendingAction: { type: "download", url: item.file_url, title: item.title },
+      });
+    }
+  };
+
+  const handleDownload = (item: LibraryResource, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to download file",
+        message: "Please sign in with Google to download security resources and guides.",
+        pendingAction: { type: "download", url: item.file_url, title: item.title },
+      });
+      return;
+    }
+    downloadFile(item.file_url, item.title);
+  };
 
   return (
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[#0B0F14] text-slate-350 py-10 relative overflow-hidden select-text">
+      <main className="min-h-screen bg-[#0B0F14] text-slate-350 py-8 relative overflow-hidden select-text">
         {/* Subtle grid background */}
-        <div className="pointer-events-none absolute inset-0 z-0"
+        <div
+          className="pointer-events-none absolute inset-0 z-0"
           style={{
             opacity: 0.012,
             backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
             backgroundSize: "56px 56px",
-          }} />
+          }}
+        />
 
         <div className="relative z-10 mx-auto max-w-[1380px] px-6 lg:px-10">
           
           {/* Header Panel */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div className="max-w-2xl">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] block mb-1">
                 Reference Documentation
@@ -102,12 +169,12 @@ export default function KnowledgeLibrary() {
           </div>
 
           {/* Category Filter Buttons */}
-          <div className="flex flex-wrap gap-2 mb-8 select-none">
-            {categoriesList.map((cat) => (
+          <div className="flex flex-wrap gap-2 mb-6 select-none">
+            {KNOWLEDGE_CATEGORIES.map((cat) => (
               <button
                 key={cat}
                 onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded text-xs font-bold transition-all ${
+                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
                   selectedCategory === cat
                     ? "bg-[#3B82F6] text-white"
                     : "bg-[#141A22] border border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500"
@@ -119,108 +186,37 @@ export default function KnowledgeLibrary() {
           </div>
 
           {errorMsg && (
-            <div className="mb-4 text-xs font-semibold text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 p-3 rounded">
+            <div className="mb-6 text-xs font-semibold text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 p-4 rounded">
               {errorMsg}
             </div>
           )}
 
-          {/* Grid display */}
+          {/* Resource List Display */}
           {loading ? (
-            <div className="text-center py-20">
+            <div className="text-center py-16">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6] mx-auto mb-4" />
               <p className="text-xs text-[#A8B3C5]">Retrieving operational assets...</p>
             </div>
           ) : resources.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2.5">
               {resources.map((item) => (
-                <div
+                <LibraryResourceRow
                   key={item.id}
-                  className="group rounded border border-[#2A3442] bg-[#141A22] p-5 flex gap-5 hover:border-slate-500 transition-all duration-200"
-                >
-                  {/* Thumbnail representing resource */}
-                  <div className="relative h-28 w-24 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none flex items-center justify-center">
-                    {item.thumbnail ? (
-                      <>
-                        <Image
-                          src={item.thumbnail}
-                          alt=""
-                          fill
-                          sizes="96px"
-                          className="object-cover blur-sm opacity-35 scale-110 pointer-events-none"
-                          unoptimized
-                        />
-                        <Image
-                          src={item.thumbnail}
-                          alt={item.title}
-                          fill
-                          sizes="96px"
-                          className="object-contain object-center relative z-10 p-1"
-                          unoptimized
-                        />
-                      </>
-                    ) : (
-                      <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
-                        <FileText className="h-8 w-8" />
-                      </div>
-                    )}
-                    <span className="absolute top-2 left-2 z-20 px-1.5 py-0.5 rounded text-[8px] font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
-                      {item.file_type.toUpperCase()}
-                    </span>
-                  </div>
-
-                  {/* Metadata and Description */}
-                  <div className="flex-1 flex flex-col justify-between min-w-0">
-                    <div>
-                      <div className="flex items-center justify-between gap-2 mb-1.5 text-[10px] text-[#A8B3C5] select-none font-bold uppercase">
-                        <span>{item.category}</span>
-                      </div>
-                      <h3 className="text-sm font-bold text-white mb-1.5 group-hover:text-[#3B82F6] transition-colors truncate">
-                        {item.title}
-                      </h3>
-                      <p className="text-xs text-[#A8B3C5] leading-relaxed line-clamp-2">
-                        {item.description}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-3 pt-3 border-t border-[#2A3442]/60 text-[10px] font-bold select-none">
-                      <a
-                        href={isLoggedIn ? item.file_url : "#"}
-                        onClick={(e) => {
-                          if (!isLoggedIn) {
-                            e.preventDefault();
-                            loginWithGoogle();
-                          }
-                        }}
-                        target={isLoggedIn ? "_blank" : undefined}
-                        rel="noopener noreferrer"
-                        className="text-[#3B82F6] hover:text-blue-400 flex items-center gap-1"
-                      >
-                        <ExternalLink className="h-3.5 w-3.5" />
-                        Open PDF
-                      </a>
-                      <span className="text-slate-650">•</span>
-                      <button
-                        onClick={(e) => {
-                          e.preventDefault();
-                          if (!isLoggedIn) {
-                            loginWithGoogle();
-                            return;
-                          }
-                          downloadFile(item.file_url, item.title);
-                        }}
-                        className="text-[#A8B3C5] hover:text-white flex items-center gap-1 cursor-pointer"
-                      >
-                        <Download className="h-3.5 w-3.5" />
-                        Download
-                      </button>
-                    </div>
-                  </div>
-                </div>
+                  item={item}
+                  isLoggedIn={isLoggedIn}
+                  isBookmarked={bookmarkedIds.includes(item.id)}
+                  onOpen={handleOpen}
+                  onDownload={handleDownload}
+                  onBookmark={(item, e) => {
+                    e.preventDefault();
+                    handleBookmarkToggle(item.id);
+                  }}
+                />
               ))}
             </div>
           ) : (
             !errorMsg && (
-              <div className="text-center py-20 border border-dashed border-[#2A3442] rounded bg-[#141A22]/40 select-none">
+              <div className="text-center py-16 border border-dashed border-[#2A3442] rounded bg-[#141A22]/40 select-none">
                 <BookOpen className="h-8 w-8 text-slate-600 mx-auto mb-3" />
                 <h3 className="text-sm font-bold text-white mb-0.5">No resources found</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
@@ -232,6 +228,14 @@ export default function KnowledgeLibrary() {
 
         </div>
       </main>
+
+      <AuthModal
+        isOpen={authModal.isOpen}
+        onClose={() => setAuthModal((p) => ({ ...p, isOpen: false }))}
+        title={authModal.title}
+        message={authModal.message}
+        pendingAction={authModal.pendingAction}
+      />
 
       <Footer />
     </>

@@ -1,22 +1,33 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
-import { Search, X, BookOpen, ExternalLink, Download, FileText, Bookmark, Calendar, User } from "lucide-react";
+import { Search, X, BookOpen } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
 import { downloadFile } from "@/utils/download";
-import Image from "next/image";
+import LibraryResourceRow from "@/components/LibraryResourceRow";
+
+const DEFENSIVE_TYPES = [
+  "All",
+  "PDF Guide",
+  "Cheat Sheet",
+  "Detection Rule",
+  "Incident Response",
+  "Hardening Guide",
+  "SOC Reference",
+  "Malware Analysis",
+  "Threat Intelligence"
+];
 
 export default function DefensiveLibrary() {
   const { isLoggedIn } = useAuth();
-  const [rawResources, setRawResources] = useState<LibraryResource[]>([]);
   const [resources, setResources] = useState<LibraryResource[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("All");
+  const [selectedType, setSelectedType] = useState("All");
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
@@ -55,28 +66,17 @@ export default function DefensiveLibrary() {
       setLoading(true);
       setErrorMsg("");
       try {
-        const data = await libraryService.getAllResources(searchQuery);
-        setRawResources(data);
-        if (selectedCategory !== "All") {
-          setResources(data.filter(item => item.category === selectedCategory));
-        } else {
-          setResources(data);
-        }
+        const data = await libraryService.getAllResources(searchQuery, "defensive", selectedType);
+        setResources(data);
       } catch (err: unknown) {
         setErrorMsg((err as Error).message || "Unable to connect to PlaySec servers.");
         setResources([]);
-        setRawResources([]);
       } finally {
         setLoading(false);
       }
     }
     loadData();
-  }, [searchQuery, selectedCategory]);
-
-  const categoriesList = useMemo(() => {
-    const unique = new Set(rawResources.map(r => r.category).filter(Boolean));
-    return ["All", ...Array.from(unique)];
-  }, [rawResources]);
+  }, [searchQuery, selectedType]);
 
   const handleBookmarkToggle = (id: string) => {
     if (!isLoggedIn) {
@@ -93,23 +93,51 @@ export default function DefensiveLibrary() {
     );
   };
 
+  const handleOpen = (item: LibraryResource, e: React.MouseEvent) => {
+    if (!isLoggedIn) {
+      e.preventDefault();
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to open resource",
+        message: "Please sign in with Google to access security resources and documentation.",
+        pendingAction: { type: "download", url: item.file_url, title: item.title },
+      });
+    }
+  };
+
+  const handleDownload = (item: LibraryResource, e: React.MouseEvent) => {
+    e.preventDefault();
+    if (!isLoggedIn) {
+      setAuthModal({
+        isOpen: true,
+        title: "Sign in required to download file",
+        message: "Please sign in with Google to download security resources and guides.",
+        pendingAction: { type: "download", url: item.file_url, title: item.title },
+      });
+      return;
+    }
+    downloadFile(item.file_url, item.title);
+  };
+
   return (
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[#0B0F14] text-slate-350 py-10 relative overflow-hidden select-text">
+      <main className="min-h-screen bg-[#0B0F14] text-slate-350 py-8 relative overflow-hidden select-text">
         {/* Subtle grid background */}
-        <div className="pointer-events-none absolute inset-0 z-0"
+        <div
+          className="pointer-events-none absolute inset-0 z-0"
           style={{
             opacity: 0.012,
             backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
             backgroundSize: "56px 56px",
-          }} />
+          }}
+        />
 
         <div className="relative z-10 mx-auto max-w-[1380px] px-6 lg:px-10">
           
           {/* Header Panel */}
-          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+          <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
             <div className="max-w-2xl">
               <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] block mb-1">
                 Defensive Knowledge Hub
@@ -147,19 +175,19 @@ export default function DefensiveLibrary() {
             </div>
           </div>
 
-          {/* Category Filter Buttons */}
-          <div className="flex flex-wrap gap-2 mb-8 select-none">
-            {categoriesList.map((cat) => (
+          {/* Resource Type Filter Buttons */}
+          <div className="flex flex-wrap gap-2 mb-6 select-none">
+            {DEFENSIVE_TYPES.map((type) => (
               <button
-                key={cat}
-                onClick={() => setSelectedCategory(cat)}
-                className={`px-3.5 py-1.5 rounded text-xs font-bold transition-all ${
-                  selectedCategory === cat
+                key={type}
+                onClick={() => setSelectedType(type)}
+                className={`px-3 py-1 rounded text-xs font-bold transition-all ${
+                  selectedType === type
                     ? "bg-[#3B82F6] text-white"
                     : "bg-[#141A22] border border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500"
                 }`}
               >
-                {cat}
+                {type}
               </button>
             ))}
           </div>
@@ -170,171 +198,36 @@ export default function DefensiveLibrary() {
             </div>
           )}
 
-          {/* Grid display */}
+          {/* Resource File-Explorer List Display */}
           {loading ? (
-            <div className="text-center py-20">
+            <div className="text-center py-16">
               <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6] mx-auto mb-4" />
-              <p className="text-xs text-[#A8B3C5]">Querying defensive databases...</p>
+              <p className="text-xs text-[#A8B3C5]">Querying defensive repository...</p>
             </div>
           ) : resources.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {resources.map((item) => {
-                const isBookmarked = bookmarkedIds.includes(item.id);
-                const displayDate = item.updated_date 
-                  ? new Date(item.updated_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
-                  : "July 22, 2026";
-                return (
-                  <div
-                    key={item.id}
-                    className="group rounded border border-[#2A3442] bg-[#141A22] p-5 flex flex-col sm:flex-row gap-5 hover:border-slate-500 transition-all duration-200"
-                  >
-                    {/* Thumbnail */}
-                    <div className="relative h-28 w-24 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none mx-auto sm:mx-0 flex items-center justify-center">
-                      {item.thumbnail ? (
-                        <>
-                          <Image
-                            src={item.thumbnail}
-                            alt=""
-                            fill
-                            sizes="96px"
-                            className="object-cover blur-sm opacity-35 scale-110 pointer-events-none"
-                            unoptimized
-                          />
-                          <Image
-                            src={item.thumbnail}
-                            alt={item.title}
-                            fill
-                            sizes="96px"
-                            className="object-contain object-center relative z-10 p-1"
-                            unoptimized
-                          />
-                        </>
-                      ) : (
-                        <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
-                          <FileText className="h-8 w-8" />
-                        </div>
-                      )}
-                      <span className="absolute top-2 left-2 z-20 px-1.5 py-0.5 rounded text-[8px] font-bold bg-[#3B82F6]/10 text-[#3B82F6] border border-[#3B82F6]/20">
-                        {item.file_type.toUpperCase()}
-                      </span>
-                    </div>
-
-                    {/* Content metadata */}
-                    <div className="flex-1 flex flex-col justify-between min-w-0">
-                      <div>
-                        <div className="flex items-center justify-between gap-2 mb-1 text-[9px] text-[#A8B3C5] select-none font-bold uppercase">
-                          <span>{item.category}</span>
-                          <span className="px-1.5 py-0.2 rounded bg-[#0B0F14] text-[8px] text-[#A8B3C5]">
-                            Reference
-                          </span>
-                        </div>
-                        <h3 className="text-sm font-bold text-white mb-1.5 group-hover:text-[#3B82F6] transition-colors truncate">
-                          {item.title}
-                        </h3>
-                        <p className="text-xs text-[#A8B3C5] leading-relaxed line-clamp-2 mb-3">
-                          {item.description}
-                        </p>
-
-                        {/* Extra metadata tags */}
-                        <div className="flex flex-wrap gap-1.5 mb-3 select-none">
-                          {item.tags.map((t) => (
-                            <span key={t} className="px-1.5 py-0.5 rounded bg-[#0B0F14] border border-[#2A3442] text-[9px] text-slate-400">
-                              #{t}
-                            </span>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Info bar & Action buttons */}
-                      <div className="border-t border-[#2A3442]/60 pt-3">
-                        <div className="flex flex-wrap items-center justify-between gap-2 mb-2 text-[10px] text-[#A8B3C5]">
-                          <span className="flex items-center gap-1">
-                            <User className="h-3 w-3 text-slate-500" />
-                            {item.author}
-                          </span>
-                          <span className="flex items-center gap-1 font-mono">
-                            <Calendar className="h-3 w-3 text-slate-500" />
-                            {displayDate}
-                          </span>
-                        </div>
-
-                        <div className="flex items-center gap-2 text-[10px] font-bold select-none pt-1">
-                          <a
-                            href={isLoggedIn ? item.file_url : "#"}
-                            onClick={(e) => {
-                              if (!isLoggedIn) {
-                                e.preventDefault();
-                                setAuthModal({
-                                  isOpen: true,
-                                  title: "Sign in required to view file",
-                                  message: "Please sign in with Google to view and download security resources.",
-                                  pendingAction: { type: "download", url: item.file_url, title: item.title },
-                                });
-                              }
-                            }}
-                            target={isLoggedIn ? "_blank" : undefined}
-                            rel="noopener noreferrer"
-                            className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-[#3B82F6] hover:border-slate-500 flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <ExternalLink className="h-3.5 w-3.5" />
-                            Preview
-                          </a>
-                          
-                          <button
-                            onClick={(e) => {
-                              e.preventDefault();
-                              if (!isLoggedIn) {
-                                setAuthModal({
-                                  isOpen: true,
-                                  title: "Sign in required to download file",
-                                  message: "Please sign in with Google to download security resources and guides.",
-                                  pendingAction: { type: "download", url: item.file_url, title: item.title },
-                                });
-                                return;
-                              }
-                              downloadFile(item.file_url, item.title);
-                            }}
-                            className="h-7 px-2.5 rounded bg-[#0B0F14] border border-[#2A3442] text-slate-350 hover:text-white hover:border-slate-500 flex items-center gap-1.5 cursor-pointer"
-                          >
-                            <Download className="h-3.5 w-3.5" />
-                            Download
-                          </button>
-
-                          <button
-                            onClick={() => {
-                              if (!isLoggedIn) {
-                                setAuthModal({
-                                  isOpen: true,
-                                  title: "Sign in required to bookmark",
-                                  message: "Please sign in with Google to save resources to your bookmarks.",
-                                  pendingAction: null,
-                                });
-                                return;
-                              }
-                              handleBookmarkToggle(item.id);
-                            }}
-                            className={`h-7 w-7 rounded border flex items-center justify-center transition-all cursor-pointer ${
-                              isBookmarked 
-                                ? "bg-[#3B82F6]/15 border-[#3B82F6] text-[#3B82F6]"
-                                : "bg-[#0B0F14] border-[#2A3442] text-slate-400 hover:text-white"
-                            }`}
-                          >
-                            <Bookmark className="h-3.5 w-3.5 fill-current" style={{ fillOpacity: isBookmarked ? 1 : 0 }} />
-                          </button>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
+            <div className="space-y-2.5">
+              {resources.map((item) => (
+                <LibraryResourceRow
+                  key={item.id}
+                  item={item}
+                  isLoggedIn={isLoggedIn}
+                  isBookmarked={bookmarkedIds.includes(item.id)}
+                  onOpen={handleOpen}
+                  onDownload={handleDownload}
+                  onBookmark={(item, e) => {
+                    e.preventDefault();
+                    handleBookmarkToggle(item.id);
+                  }}
+                />
+              ))}
             </div>
           ) : (
             !errorMsg && (
-              <div className="text-center py-20 border border-dashed border-[#2A3442] rounded bg-[#141A22]/40 select-none">
+              <div className="text-center py-16 border border-dashed border-[#2A3442] rounded bg-[#141A22]/40 select-none">
                 <BookOpen className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-white mb-0.5">No resources have been published yet.</h3>
+                <h3 className="text-sm font-bold text-white mb-0.5">No resources found in Defensive Library</h3>
                 <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Try refining your category selection or search keywords.
+                  Try refining your resource type filter or search keywords.
                 </p>
               </div>
             )

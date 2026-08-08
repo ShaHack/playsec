@@ -4,11 +4,15 @@ export interface LibraryResource {
   title: string;
   description: string;
   author: string;
-  category: "Offensive Security" | "Defensive Security" | "Cloud Security" | "Web Security" | "Digital Forensics" | "Threat Hunting" | "Malware Analysis" | "Secure Coding" | "Incident Response";
+  security_domain: "offensive" | "defensive";
+  category: "Offensive Security" | "Defensive Security";
+  resource_type: string;
   subcategory?: string;
   thumbnail: string;
   file_url: string;
   file_type: string;
+  file_size?: string;
+  file_format?: string;
   tags: string[];
   updated_date?: string;
   featured?: boolean;
