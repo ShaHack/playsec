@@ -136,6 +136,10 @@ export const libraryService = {
       try {
         let query = supabase.from("knowledge_resources").select("*").eq("published", true);
 
+        if (domainFilter === "offensive" || domainFilter === "defensive") {
+          query = query.or(`security_domain.eq.${domainFilter},category.ilike.%${domainFilter}%`);
+        }
+
         if (searchQuery && searchQuery.trim()) {
           const sanitized = searchQuery.replace(/[^a-zA-Z0-9\s-_]/g, "").trim();
           if (sanitized) {
