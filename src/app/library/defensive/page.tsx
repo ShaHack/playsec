@@ -225,10 +225,7 @@ export default function DefensiveLibrary() {
             !errorMsg && (
               <div className="text-center py-16 border border-dashed border-[#2A3442] rounded bg-[#141A22]/40 select-none">
                 <BookOpen className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-white mb-0.5">No resources found in Defensive Library</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
-                  Try refining your resource type filter or search keywords.
-                </p>
+                <h3 className="text-sm font-bold text-white mb-0.5">No resources available yet.</h3>
               </div>
             )
           )}
