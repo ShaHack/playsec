@@ -8,7 +8,8 @@ export interface LibraryResource {
   category: "Offensive Security" | "Defensive Security";
   resource_type: string;
   subcategory?: string;
-  thumbnail: string;
+  storage_path?: string;
+  thumbnail?: string;
   file_url: string;
   file_type: string;
   file_size?: string;

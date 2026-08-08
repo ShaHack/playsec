@@ -10,6 +10,10 @@ const isEnvMissing = () => {
   return !url || !key || url.includes("placeholder-project-id") || key.includes("placeholder-signature");
 };
 
+const getSupabaseBaseUrl = () => {
+  return process.env.NEXT_PUBLIC_SUPABASE_URL || "https://rkpocwynysurzmvjelga.supabase.co";
+};
+
 // Standard seed resources to ensure baseline datasets for both domains
 const DEFAULT_RESOURCES: LibraryResource[] = [
   {
@@ -22,8 +26,8 @@ const DEFAULT_RESOURCES: LibraryResource[] = [
     category: "Offensive Security",
     resource_type: "PDF Guide",
     subcategory: "Wireless Security",
-    thumbnail: "",
-    file_url: "https://rkpocwynysurzmvjelga.supabase.co/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf",
+    storage_path: "offensive/WiFi-Hacking.pdf",
+    file_url: `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/offensive/WiFi-Hacking.pdf`,
     file_type: "pdf",
     file_size: "4.8 MB",
     file_format: "PDF",
@@ -42,8 +46,8 @@ const DEFAULT_RESOURCES: LibraryResource[] = [
     category: "Offensive Security",
     resource_type: "PDF Guide",
     subcategory: "Web Exploitation",
-    thumbnail: "",
-    file_url: "https://rkpocwynysurzmvjelga.supabase.co/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf",
+    storage_path: "offensive/Prompt-Engineering-Offensive-View.pdf",
+    file_url: `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf`,
     file_type: "pdf",
     file_size: "2.72 MB",
     file_format: "PDF",
@@ -62,8 +66,8 @@ const DEFAULT_RESOURCES: LibraryResource[] = [
     category: "Offensive Security",
     resource_type: "Cheat Sheet",
     subcategory: "Active Directory",
-    thumbnail: "",
-    file_url: "https://rkpocwynysurzmvjelga.supabase.co/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf",
+    storage_path: "offensive/Active-Directory-Kerberoasting.pdf",
+    file_url: `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf`,
     file_type: "pdf",
     file_size: "3.15 MB",
     file_format: "PDF",
@@ -82,8 +86,8 @@ const DEFAULT_RESOURCES: LibraryResource[] = [
     category: "Defensive Security",
     resource_type: "Detection Rule",
     subcategory: "Incident Response",
-    thumbnail: "",
-    file_url: "https://rkpocwynysurzmvjelga.supabase.co/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf",
+    storage_path: "defensive/SOC-Threat-Hunting.pdf",
+    file_url: `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/defensive/SOC-Threat-Hunting.pdf`,
     file_type: "pdf",
     file_size: "5.10 MB",
     file_format: "PDF",
@@ -102,8 +106,8 @@ const DEFAULT_RESOURCES: LibraryResource[] = [
     category: "Defensive Security",
     resource_type: "Hardening Guide",
     subcategory: "SOC Reference",
-    thumbnail: "",
-    file_url: "https://rkpocwynysurzmvjelga.supabase.co/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf",
+    storage_path: "defensive/Cloud-Hardening-Guide.pdf",
+    file_url: `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf`,
     file_type: "pdf",
     file_size: "3.90 MB",
     file_format: "PDF",
@@ -191,97 +195,6 @@ export const libraryService = {
 
     libraryCache.set(cacheKey, { data: result, timestamp: Date.now() });
     return result;
-  },
-
-  async uploadResource(input: {
-    title: string;
-    security_domain: "offensive" | "defensive";
-    resource_type: string;
-    file: File;
-    author?: string;
-    description?: string;
-  }): Promise<LibraryResource> {
-    const { title, security_domain, resource_type, file, author, description } = input;
-
-    const timestamp = Date.now();
-    const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
-    const slug = `${baseSlug}-${timestamp}`;
-
-    const fileName = `${security_domain}/${slug}.pdf`;
-
-    let publicFileUrl = "";
-
-    if (!isEnvMissing()) {
-      try {
-        const { data: uploadData, error: uploadError } = await supabase.storage
-          .from("library-resources")
-          .upload(fileName, file, {
-            cacheControl: "3600",
-            upsert: true,
-          });
-
-        if (!uploadError && uploadData) {
-          const { data: publicUrlData } = supabase.storage
-            .from("library-resources")
-            .getPublicUrl(fileName);
-          publicFileUrl = publicUrlData.publicUrl;
-        }
-      } catch {
-        // Fallback constructing URL
-      }
-    }
-
-    if (!publicFileUrl) {
-      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://rkpocwynysurzmvjelga.supabase.co";
-      publicFileUrl = `${supabaseUrl}/storage/v1/object/public/library-resources/${fileName}`;
-    }
-
-    const category = security_domain === "offensive" ? "Offensive Security" : "Defensive Security";
-
-    const newResource: LibraryResource = {
-      id: slug,
-      slug: slug,
-      title: title,
-      description: description || `${category} briefing document covering ${resource_type}.`,
-      author: author || "PlaySec SecOps Team",
-      security_domain: security_domain,
-      category: category,
-      resource_type: resource_type,
-      subcategory: resource_type,
-      thumbnail: "",
-      file_url: publicFileUrl,
-      file_type: "pdf",
-      file_size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
-      file_format: "PDF",
-      tags: [security_domain, resource_type.toLowerCase().replace(/\s+/g, "-")],
-      updated_date: new Date().toISOString(),
-      featured: true,
-      published: true,
-    };
-
-    if (!isEnvMissing()) {
-      try {
-        await supabase.from("knowledge_resources").insert({
-          slug: slug,
-          title: title,
-          description: newResource.description,
-          author: newResource.author,
-          category: category,
-          subcategory: resource_type,
-          file_url: publicFileUrl,
-          file_type: "pdf",
-          published: true,
-        });
-      } catch {
-        // Ignore DB insert errors
-      }
-    }
-
-    // Clear cache and add to DEFAULT_RESOURCES list in-memory so it shows immediately
-    DEFAULT_RESOURCES.unshift(newResource);
-    libraryCache.clear();
-
-    return newResource;
   }
 };
 
@@ -313,6 +226,15 @@ function mapDbToResource(dbItem: any): LibraryResource {
 
   const category = domain === "offensive" ? "Offensive Security" : "Defensive Security";
   const resource_type = dbItem.resource_type || dbItem.subcategory || "PDF Guide";
+  const storage_path = dbItem.storage_path || (domain === "offensive" ? `offensive/${dbItem.slug}.pdf` : `defensive/${dbItem.slug}.pdf`);
+
+  let file_url = dbItem.file_url || "";
+  if (!file_url && storage_path) {
+    file_url = `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/${storage_path}`;
+  }
+  if (!file_url) {
+    file_url = `${getSupabaseBaseUrl()}/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf`;
+  }
 
   return {
     id: dbItem.id?.toString() || title.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
@@ -324,8 +246,9 @@ function mapDbToResource(dbItem: any): LibraryResource {
     category: category,
     resource_type: resource_type,
     subcategory: resource_type,
+    storage_path: storage_path,
     thumbnail: dbItem.thumbnail || "",
-    file_url: dbItem.file_url || "https://rkpocwynysurzmvjelga.supabase.co/storage/v1/object/public/library-resources/Defensive/Prompt%20Engineering%20(Offensive%20View).pdf",
+    file_url: file_url,
     file_type: dbItem.file_type || "pdf",
     file_size: dbItem.file_size || "2.72 MB",
     file_format: (dbItem.file_type || "pdf").toUpperCase(),
