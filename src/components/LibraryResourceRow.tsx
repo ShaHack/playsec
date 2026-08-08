@@ -20,7 +20,7 @@ export default function LibraryResourceRow({
   onDownload,
   onBookmark
 }: LibraryResourceRowProps) {
-  const isOffensive = item.security_domain === "offensive";
+  const isOffensive = item.security_side === "offensive";
 
   const domainBadgeColor = isOffensive
     ? "bg-[#EF4444]/10 text-[#EF4444] border-[#EF4444]/30"
