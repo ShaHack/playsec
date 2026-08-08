@@ -191,6 +191,97 @@ export const libraryService = {
 
     libraryCache.set(cacheKey, { data: result, timestamp: Date.now() });
     return result;
+  },
+
+  async uploadResource(input: {
+    title: string;
+    security_domain: "offensive" | "defensive";
+    resource_type: string;
+    file: File;
+    author?: string;
+    description?: string;
+  }): Promise<LibraryResource> {
+    const { title, security_domain, resource_type, file, author, description } = input;
+
+    const timestamp = Date.now();
+    const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/(^-|-$)/g, "");
+    const slug = `${baseSlug}-${timestamp}`;
+
+    const fileName = `${security_domain}/${slug}.pdf`;
+
+    let publicFileUrl = "";
+
+    if (!isEnvMissing()) {
+      try {
+        const { data: uploadData, error: uploadError } = await supabase.storage
+          .from("library-resources")
+          .upload(fileName, file, {
+            cacheControl: "3600",
+            upsert: true,
+          });
+
+        if (!uploadError && uploadData) {
+          const { data: publicUrlData } = supabase.storage
+            .from("library-resources")
+            .getPublicUrl(fileName);
+          publicFileUrl = publicUrlData.publicUrl;
+        }
+      } catch {
+        // Fallback constructing URL
+      }
+    }
+
+    if (!publicFileUrl) {
+      const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://rkpocwynysurzmvjelga.supabase.co";
+      publicFileUrl = `${supabaseUrl}/storage/v1/object/public/library-resources/${fileName}`;
+    }
+
+    const category = security_domain === "offensive" ? "Offensive Security" : "Defensive Security";
+
+    const newResource: LibraryResource = {
+      id: slug,
+      slug: slug,
+      title: title,
+      description: description || `${category} briefing document covering ${resource_type}.`,
+      author: author || "PlaySec SecOps Team",
+      security_domain: security_domain,
+      category: category,
+      resource_type: resource_type,
+      subcategory: resource_type,
+      thumbnail: "",
+      file_url: publicFileUrl,
+      file_type: "pdf",
+      file_size: `${(file.size / (1024 * 1024)).toFixed(2)} MB`,
+      file_format: "PDF",
+      tags: [security_domain, resource_type.toLowerCase().replace(/\s+/g, "-")],
+      updated_date: new Date().toISOString(),
+      featured: true,
+      published: true,
+    };
+
+    if (!isEnvMissing()) {
+      try {
+        await supabase.from("knowledge_resources").insert({
+          slug: slug,
+          title: title,
+          description: newResource.description,
+          author: newResource.author,
+          category: category,
+          subcategory: resource_type,
+          file_url: publicFileUrl,
+          file_type: "pdf",
+          published: true,
+        });
+      } catch {
+        // Ignore DB insert errors
+      }
+    }
+
+    // Clear cache and add to DEFAULT_RESOURCES list in-memory so it shows immediately
+    DEFAULT_RESOURCES.unshift(newResource);
+    libraryCache.clear();
+
+    return newResource;
   }
 };
 

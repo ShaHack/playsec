@@ -5,9 +5,10 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { libraryService } from "@/services/libraryService";
 import { LibraryResource } from "@/types/library";
-import { Search, X, BookOpen } from "lucide-react";
+import { Search, X, BookOpen, Upload } from "lucide-react";
 import { useAuth } from "@/hooks/useAuth";
 import AuthModal from "@/components/AuthModal";
+import UploadResourceModal from "@/components/UploadResourceModal";
 import { downloadFile } from "@/utils/download";
 import LibraryResourceRow from "@/components/LibraryResourceRow";
 
@@ -31,6 +32,7 @@ export default function DefensiveLibrary() {
   const [loading, setLoading] = useState(true);
   const [errorMsg, setErrorMsg] = useState("");
   const [bookmarkedIds, setBookmarkedIds] = useState<string[]>([]);
+  const [isUploadOpen, setIsUploadOpen] = useState(false);
   const [authModal, setAuthModal] = useState<{
     isOpen: boolean;
     title: string;
@@ -150,28 +152,49 @@ export default function DefensiveLibrary() {
               </p>
             </div>
 
-            {/* Search Input */}
-            <div className="relative w-full md:w-80 shrink-0">
-              <span className="absolute inset-y-0 left-3 flex items-center text-[#A8B3C5]">
-                <Search className="h-4 w-4" />
-              </span>
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search defensive resources..."
-                className="w-full h-9 pl-9.5 pr-8 rounded border border-[#2A3442] bg-[#141A22] text-xs text-white placeholder:text-[#A8B3C5] focus:border-[#3B82F6] focus:outline-none transition-colors"
-                style={{ paddingLeft: "2.3rem" }}
-              />
-              {searchQuery && (
-                <button
-                  onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-white"
-                  aria-label="Clear filter"
-                >
-                  <X className="h-4 w-4" />
-                </button>
-              )}
+            {/* Controls: Search + Upload */}
+            <div className="flex items-center gap-3 w-full md:w-auto shrink-0 flex-wrap md:flex-nowrap">
+              <div className="relative w-full md:w-80 shrink-0">
+                <span className="absolute inset-y-0 left-3 flex items-center text-[#A8B3C5]">
+                  <Search className="h-4 w-4" />
+                </span>
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  placeholder="Search defensive resources..."
+                  className="w-full h-9 pl-9.5 pr-8 rounded border border-[#2A3442] bg-[#141A22] text-xs text-white placeholder:text-[#A8B3C5] focus:border-[#3B82F6] focus:outline-none transition-colors"
+                  style={{ paddingLeft: "2.3rem" }}
+                />
+                {searchQuery && (
+                  <button
+                    onClick={() => setSearchQuery("")}
+                    className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-white"
+                    aria-label="Clear filter"
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                )}
+              </div>
+
+              <button
+                onClick={() => {
+                  if (!isLoggedIn) {
+                    setAuthModal({
+                      isOpen: true,
+                      title: "Sign in required to upload",
+                      message: "Please sign in with Google to upload security resources to the PlaySec Library.",
+                      pendingAction: null,
+                    });
+                    return;
+                  }
+                  setIsUploadOpen(true);
+                }}
+                className="h-9 px-3.5 rounded bg-[#3B82F6] hover:bg-blue-600 font-bold text-xs text-white flex items-center gap-1.5 transition-all shrink-0 cursor-pointer shadow-sm shadow-blue-500/20"
+              >
+                <Upload className="h-3.5 w-3.5" />
+                Upload Resource
+              </button>
             </div>
           </div>
 
@@ -242,6 +265,16 @@ export default function DefensiveLibrary() {
         title={authModal.title}
         message={authModal.message}
         pendingAction={authModal.pendingAction}
+      />
+
+      <UploadResourceModal
+        isOpen={isUploadOpen}
+        onClose={() => setIsUploadOpen(false)}
+        defaultDomain="defensive"
+        onSuccess={async () => {
+          const data = await libraryService.getAllResources(searchQuery, "defensive", selectedType);
+          setResources(data);
+        }}
       />
 
       <Footer />
