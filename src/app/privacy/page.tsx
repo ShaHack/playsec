@@ -36,32 +36,32 @@ export default function PrivacyPage() {
     <>
       <Navbar />
 
-      <main className="flex-1 select-text bg-[#09090B] text-[#FAFAFA] min-h-screen">
+      <main className="flex-1 select-text bg-[#F5F8FA] text-[#17232D] min-h-screen">
         
         {/* Hero Section */}
-        <section className="relative w-full border-b border-[#27272A] py-16 bg-[#121214]">
+        <section className="relative w-full border-b border-[#D9E4EA] py-16 bg-white">
           <div className="pointer-events-none absolute inset-0 z-0"
             style={{
-              opacity: 0.012,
-              backgroundImage: "linear-gradient(#27272A 1px, transparent 1px), linear-gradient(90deg, #27272A 1px, transparent 1px)",
+              opacity: 0.4,
+              backgroundImage: "linear-gradient(#D9E4EA 1px, transparent 1px), linear-gradient(90deg, #D9E4EA 1px, transparent 1px)",
               backgroundSize: "56px 56px",
             }} />
 
           <div className="relative z-10 mx-auto max-w-[960px] px-6 text-center">
             <div className="flex items-center justify-center gap-2 mb-4">
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#2563EB] bg-[#2563EB]/10 border border-[#2563EB]/20 px-3 py-1 rounded">
-                <Lock className="h-3 w-3" />
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B57] bg-[#E9F1F5] border border-[#D9E4EA] px-3 py-1 rounded">
+                <Lock className="h-3 w-3 text-[#4FAFC1]" />
                 Privacy Policy
               </span>
-              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#10B981] bg-[#10B981]/10 border border-[#10B981]/20 px-3 py-1 rounded">
+              <span className="inline-flex items-center gap-1 text-[10px] font-bold text-[#3D8B72] bg-[#E8F4F0] border border-[#C4E4D9] px-3 py-1 rounded">
                 <CheckCircle className="h-3 w-3" />
                 Last Updated: July 22, 2026
               </span>
             </div>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#17232D] leading-tight">
               Privacy Policy
             </h1>
-            <p className="mt-6 text-base sm:text-lg leading-relaxed text-[#A1A1AA] max-w-2xl mx-auto">
+            <p className="mt-6 text-base sm:text-lg leading-relaxed text-[#60717D] max-w-2xl mx-auto">
               Your privacy matters. Learn how PlaySec collects, stores, and protects information.
             </p>
           </div>
@@ -70,17 +70,17 @@ export default function PrivacyPage() {
         {/* Content Section */}
         <section className="py-12 mx-auto max-w-[960px] px-6 space-y-10">
           {policySections.map((group, groupIdx) => (
-            <div key={groupIdx} className="rounded border border-[#27272A] bg-[#18181B] p-6 space-y-4">
-              <h2 className="text-sm font-bold text-white uppercase tracking-wider border-b border-[#27272A] pb-2 flex items-center gap-2">
-                <FileText className="h-4 w-4 text-[#2563EB]" />
+            <div key={groupIdx} className="rounded border border-[#D9E4EA] bg-white p-6 space-y-4 shadow-xs">
+              <h2 className="text-sm font-bold text-[#17232D] uppercase tracking-wider border-b border-[#D9E4EA] pb-2 flex items-center gap-2">
+                <FileText className="h-4 w-4 text-[#4FAFC1]" />
                 {group.title}
               </h2>
               
               <div className="space-y-4">
                 {group.items.map((item, itemIdx) => (
                   <div key={itemIdx} className="space-y-1">
-                    <h3 className="text-xs font-bold text-slate-200">{item.label}</h3>
-                    <p className="text-xs sm:text-sm text-[#A1A1AA] leading-relaxed">
+                    <h3 className="text-xs font-bold text-[#17232D]">{item.label}</h3>
+                    <p className="text-xs sm:text-sm text-[#60717D] leading-relaxed">
                       {item.desc}
                     </p>
                   </div>

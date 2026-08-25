@@ -3,35 +3,37 @@
 @theme {
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
   
-  /* Brand Color Palette - Premium Cybersecurity Documentation */
-  --color-primary-blue: #3B82F6;
-  --color-dark-text: #F3F4F6;
-  --color-bg-canvas: #0B0F14;
-  --color-surface-card: #141A22;
-  --color-secondary-text: #A8B3C5;
-  --color-success-green: #10B981;
-  --color-warning-amber: #F59E0B;
-  --color-border-color: #2A3442;
-  --color-hover-bg: #2A3442;
-  --color-danger-red: #EF4444;
+  /* Calm, Professional Cybersecurity Palette */
+  --color-primary-navy: #173B57;
+  --color-primary-blue: #245A7A;
+  --color-accent-cyan: #4FAFC1;
+  --color-main-text: #17232D;
+  --color-secondary-text: #60717D;
+  --color-bg-canvas: #F5F8FA;
+  --color-surface-card: #FFFFFF;
+  --color-border-color: #D9E4EA;
+
+  --color-success-green: #3D8B72;
+  --color-warning-amber: #C28A32;
+  --color-danger-red: #C95757;
 
   /* Custom Spacing & Border Radii */
-  --radius-card: 10px;
+  --radius-card: 8px;
   --radius-btn: 6px;
   
-  /* Drop Shadows - Premium Subtle Elevation */
-  --shadow-premium: 0 4px 20px 0 rgba(0, 0, 0, 0.4);
-  --shadow-premium-hover: 0 10px 30px 0 rgba(0, 0, 0, 0.6), 0 0 1px 0 rgba(255, 255, 255, 0.1) inset;
+  /* Drop Shadows */
+  --shadow-subtle: 0 1px 3px 0 rgba(23, 35, 45, 0.05);
+  --shadow-subtle-hover: 0 4px 12px 0 rgba(23, 35, 45, 0.08);
 }
 
 :root {
-  --background: #0B0F14;
-  --foreground: #F3F4F6;
+  --background: #F5F8FA;
+  --foreground: #17232D;
 }
 
 body {
-  background-color: #0B0F14;
-  color: #F3F4F6;
+  background-color: #F5F8FA;
+  color: #17232D;
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -42,64 +44,64 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #0B0F14;
+  background: #F5F8FA;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #2A3442;
+  background: #D9E4EA;
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3B82F6;
+  background: #4FAFC1;
 }
 
-/* ── SUB-5% OPACITY CYBERSECURITY BACKGROUND PATTERNS ── */
+/* Background grid & pattern */
 .cyber-grid {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(168, 179, 197, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(168, 179, 197, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(23, 35, 45, 0.04) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(23, 35, 45, 0.04) 1px, transparent 1px);
 }
 
 .blueprint-pattern {
   background-size: 80px 80px;
   background-image: 
-    radial-gradient(circle, rgba(59, 130, 246, 0.02) 1.5px, transparent 1.5px);
+    radial-gradient(circle, rgba(79, 175, 193, 0.05) 1.5px, transparent 1.5px);
 }
 
-/* Premium Card and Component Tokens */
+/* Card and Component Classes */
 .playsec-card {
-  background-color: #141A22;
-  border: 1px solid #2A3442;
-  border-radius: 10px;
-  box-shadow: 0 4px 16px 0 rgba(0, 0, 0, 0.3);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: #FFFFFF;
+  border: 1px solid #D9E4EA;
+  border-radius: 8px;
+  box-shadow: 0 1px 3px 0 rgba(23, 35, 45, 0.04);
+  transition: all 0.2s ease-in-out;
 }
 
 .playsec-card:hover {
-  border-color: #3B82F6;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 24px 0 rgba(0, 0, 0, 0.5);
+  border-color: #4FAFC1;
+  box-shadow: 0 4px 12px 0 rgba(23, 35, 45, 0.08);
 }
 
 .playsec-input {
-  background-color: #0B0F14;
-  border: 1px solid #2A3442;
+  background-color: #FFFFFF;
+  border: 1px solid #D9E4EA;
   border-radius: 6px;
-  color: #F3F4F6;
+  color: #17232D;
   font-size: 0.8125rem;
   transition: all 0.2s ease-in-out;
 }
 
 .playsec-input:focus {
-  border-color: #3B82F6;
+  border-color: #4FAFC1;
   outline: none;
-  background-color: #141A22;
+  background-color: #FFFFFF;
+  box-shadow: 0 0 0 2px rgba(79, 175, 193, 0.15);
 }
 
 .playsec-btn-primary {
-  background-color: #3B82F6;
+  background-color: #173B57;
   color: #FFFFFF;
   border: 1px solid transparent;
   border-radius: 6px;
@@ -108,19 +110,19 @@ body {
 }
 
 .playsec-btn-primary:hover {
-  background-color: #2563EB;
+  background-color: #245A7A;
 }
 
 .playsec-btn-secondary {
-  background-color: #141A22;
-  color: #F3F4F6;
-  border: 1px solid #2A3442;
+  background-color: #FFFFFF;
+  color: #17232D;
+  border: 1px solid #D9E4EA;
   border-radius: 6px;
   font-weight: 600;
   transition: all 0.2s ease-in-out;
 }
 
 .playsec-btn-secondary:hover {
-  background-color: #2A3442;
-  border-color: #3B82F6;
+  background-color: #F5F8FA;
+  border-color: #4FAFC1;
 }

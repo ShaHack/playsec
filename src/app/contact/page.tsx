@@ -102,7 +102,7 @@ export default function ContactPage() {
     <>
       <Navbar />
 
-      <main className="flex-1 select-text bg-[#0B0F14] text-[#F3F4F6] min-h-screen">
+      <main className="flex-1 select-text bg-[#F5F8FA] text-[#17232D] min-h-screen">
         
         {/* Toast Notification */}
         <AnimatePresence>
@@ -112,15 +112,15 @@ export default function ContactPage() {
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
               transition={{ duration: 0.15 }}
-              className={`fixed top-16 right-5 z-[60] flex items-start gap-3 px-4 py-3 rounded border shadow-xl max-w-sm select-none backdrop-blur-md text-xs font-semibold ${
+              className={`fixed top-16 right-5 z-[60] flex items-start gap-3 px-4 py-3 rounded border shadow-md max-w-sm select-none text-xs font-semibold ${
                 toast.type === "success"
-                  ? "bg-[#141A22] border-[#10B981]/50 text-[#10B981]"
-                  : "bg-[#141A22] border-[#EF4444]/50 text-[#EF4444]"
+                  ? "bg-white border-[#C4E4D9] text-[#3D8B72]"
+                  : "bg-white border-[#F5D3D3] text-[#C95757]"
               }`}
             >
               {toast.type === "success" ? <Check className="h-4 w-4 shrink-0 mt-0.5" /> : <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-              <span className="leading-snug text-[#F3F4F6]">{toast.msg}</span>
-              <button onClick={() => setToast((p) => ({ ...p, show: false }))} className="ml-auto text-slate-400 hover:text-white">
+              <span className="leading-snug text-[#17232D]">{toast.msg}</span>
+              <button onClick={() => setToast((p) => ({ ...p, show: false }))} className="ml-auto text-[#60717D] hover:text-[#17232D]">
                 <XIcon className="h-3.5 w-3.5" />
               </button>
             </motion.div>
@@ -128,22 +128,22 @@ export default function ContactPage() {
         </AnimatePresence>
 
         {/* Hero Section */}
-        <section className="relative w-full border-b border-[#2A3442] py-16 bg-[#121214]">
+        <section className="relative w-full border-b border-[#D9E4EA] py-16 bg-white">
           <div className="pointer-events-none absolute inset-0 z-0"
             style={{
-              opacity: 0.012,
-              backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
+              opacity: 0.4,
+              backgroundImage: "linear-gradient(#D9E4EA 1px, transparent 1px), linear-gradient(90deg, #D9E4EA 1px, transparent 1px)",
               backgroundSize: "56px 56px",
             }} />
 
           <div className="relative z-10 mx-auto max-w-[960px] px-6 text-center">
-            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-1 rounded mb-6">
+            <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B57] bg-[#E9F1F5] border border-[#D9E4EA] px-3 py-1 rounded mb-6">
               Contact PlaySec
             </span>
-            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#17232D] leading-tight">
               Contact PlaySec
             </h1>
-            <p className="mt-6 text-base sm:text-lg leading-relaxed text-[#A8B3C5] max-w-2xl mx-auto">
+            <p className="mt-6 text-base sm:text-lg leading-relaxed text-[#60717D] max-w-2xl mx-auto">
               Need help, found a bug, or want to collaborate? Get in touch.
             </p>
           </div>
@@ -157,26 +157,26 @@ export default function ContactPage() {
             <div className="lg:col-span-5 space-y-6">
               
               {/* Emails */}
-              <div className="rounded border border-[#2A3442] bg-[#141A22] p-5 space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-[#2A3442]">
-                  <Mail className="h-4 w-4 text-[#3B82F6]" />
-                  <h2 className="text-xs font-bold text-white uppercase tracking-wider">Email Channels</h2>
+              <div className="rounded border border-[#D9E4EA] bg-white p-5 space-y-4 shadow-xs">
+                <div className="flex items-center gap-2 pb-2 border-b border-[#D9E4EA]">
+                  <Mail className="h-4 w-4 text-[#4FAFC1]" />
+                  <h2 className="text-xs font-bold text-[#17232D] uppercase tracking-wider">Email Channels</h2>
                 </div>
                 
                 <div className="space-y-3">
                   <div>
-                    <span className="block text-[10px] font-bold uppercase text-slate-500">PlaySec Support Team</span>
-                    <a href="mailto:playsec.platform@gmail.com" className="text-xs font-mono text-[#F3F4F6] hover:text-[#3B82F6] transition-colors">playsec.platform@gmail.com</a>
+                    <span className="block text-[10px] font-bold uppercase text-[#60717D]">PlaySec Support Team</span>
+                    <a href="mailto:playsec.platform@gmail.com" className="text-xs font-mono text-[#173B57] hover:text-[#4FAFC1] transition-colors">playsec.platform@gmail.com</a>
                   </div>
                 </div>
               </div>
 
               {/* Response SLA */}
-              <div className="rounded border border-[#2A3442] bg-[#141A22] p-4 flex items-center gap-3">
-                <Clock className="h-5 w-5 text-[#3B82F6] shrink-0" />
+              <div className="rounded border border-[#D9E4EA] bg-white p-4 flex items-center gap-3 shadow-xs">
+                <Clock className="h-5 w-5 text-[#4FAFC1] shrink-0" />
                 <div>
-                  <span className="block text-[10px] font-bold uppercase text-slate-500">Response SLA</span>
-                  <span className="text-xs text-[#F3F4F6] font-medium">Typically within 24–48 hours</span>
+                  <span className="block text-[10px] font-bold uppercase text-[#60717D]">Response SLA</span>
+                  <span className="text-xs text-[#17232D] font-medium">Typically within 24–48 hours</span>
                 </div>
               </div>
 
@@ -184,13 +184,14 @@ export default function ContactPage() {
 
             {/* Right Column: Ticket / Enquiry Form */}
             <div className="lg:col-span-7">
-              <div className="rounded border border-[#2A3442] bg-[#141A22] shadow-sm overflow-hidden">
-                <div className="px-5 py-3 border-b border-[#2A3442] bg-[#141A22] flex items-center justify-between">
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">New Support Ticket</span>
-                  <span className="text-[10px] font-mono text-slate-400">STATUS: ACTIVE</span>
-                </div>                <form onSubmit={handleFormSubmit} className="p-4 space-y-4">
+              <div className="rounded border border-[#D9E4EA] bg-white shadow-xs overflow-hidden">
+                <div className="px-5 py-3 border-b border-[#D9E4EA] bg-[#F5F8FA] flex items-center justify-between">
+                  <span className="text-xs font-bold text-[#17232D] uppercase tracking-wider">New Support Ticket</span>
+                  <span className="text-[10px] font-mono text-[#4FAFC1] font-bold">STATUS: ACTIVE</span>
+                </div>
+                <form onSubmit={handleFormSubmit} className="p-4 space-y-4">
                   {statusSuccessMsg && (
-                    <div className="p-3 rounded border border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981] text-xs font-semibold flex items-center gap-2">
+                    <div className="p-3 rounded border border-[#C4E4D9] bg-[#E8F4F0] text-[#3D8B72] text-xs font-semibold flex items-center gap-2">
                       <ShieldCheck className="h-4 w-4 shrink-0" />
                       <span>{statusSuccessMsg}</span>
                     </div>
@@ -198,7 +199,7 @@ export default function ContactPage() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label htmlFor="name-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Name</label>
+                      <label htmlFor="name-input" className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">Name</label>
                       <input
                         id="name-input"
                         type="text"
@@ -206,11 +207,11 @@ export default function ContactPage() {
                         value={formName}
                         onChange={(e) => setFormName(e.target.value)}
                         placeholder="Jane Doe"
-                        className="w-full h-8 px-2.5 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none transition-colors"
+                        className="w-full h-8 px-2.5 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none transition-colors"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label htmlFor="email-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Email Address</label>
+                      <label htmlFor="email-input" className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">Email Address</label>
                       <input
                         id="email-input"
                         type="email"
@@ -218,13 +219,13 @@ export default function ContactPage() {
                         value={formEmail}
                         onChange={(e) => setFormEmail(e.target.value)}
                         placeholder="jane@organization.com"
-                        className="w-full h-8 px-2.5 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none transition-colors"
+                        className="w-full h-8 px-2.5 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none transition-colors"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label htmlFor="subject-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Subject</label>
+                    <label htmlFor="subject-input" className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">Subject</label>
                     <input
                       id="subject-input"
                       type="text"
@@ -232,12 +233,12 @@ export default function ContactPage() {
                       value={formSubject}
                       onChange={(e) => setFormSubject(e.target.value)}
                       placeholder="Enter support issue summary"
-                      className="w-full h-8 px-2.5 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none transition-colors"
+                      className="w-full h-8 px-2.5 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none transition-colors"
                     />
                   </div>
 
                   <div className="space-y-1">
-                    <label htmlFor="message-input" className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">Message</label>
+                    <label htmlFor="message-input" className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">Message</label>
                     <textarea
                       id="message-input"
                       required
@@ -245,17 +246,17 @@ export default function ContactPage() {
                       rows={5}
                       onChange={(e) => setFormMessage(e.target.value)}
                       placeholder="Describe your inquiry in detail..."
-                      className="w-full p-2.5 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-650 focus:border-[#3B82F6] focus:outline-none transition-colors resize-none"
+                      className="w-full p-2.5 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none transition-colors resize-none"
                     />
                   </div>
 
                   {!isLoggedIn && (
-                    <div className="p-3 rounded border border-[#2A3442] bg-[#0B0F14] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                      <span className="text-[#A8B3C5]">Please sign in to submit support request.</span>
+                    <div className="p-3 rounded border border-[#D9E4EA] bg-[#F5F8FA] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                      <span className="text-[#60717D]">Please sign in to submit support request.</span>
                       <button
                         type="button"
                         onClick={loginWithGoogle}
-                        className="px-3.5 py-1.5 rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
+                        className="px-3.5 py-1.5 rounded bg-[#173B57] hover:bg-[#245A7A] text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
                       >
                         <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current shrink-0" aria-hidden="true">
                           <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.438a6.445 6.445 0 016.437-6.437c1.558 0 2.978.557 4.095 1.486L21.2 4.135C19.268 2.502 16.742 1.5 12.24 1.5c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5c5.385 0 10.07-3.793 10.07-10.5 0-.66-.06-1.285-.2-1.715H12.24z"/>
@@ -266,7 +267,7 @@ export default function ContactPage() {
                   )}
 
                   <div className="flex items-center justify-between pt-1">
-                    <span className="text-[10px] text-slate-500 font-mono">
+                    <span className="text-[10px] text-[#60717D] font-mono">
                       SECURE CHANNEL ACTIVE
                     </span>
                     <button
@@ -274,8 +275,8 @@ export default function ContactPage() {
                       disabled={submitting || !isLoggedIn}
                       className={`h-8 px-4 rounded text-xs font-bold text-white transition-all flex items-center gap-1.5 select-none ${
                         submitting || !isLoggedIn
-                          ? "bg-[#3B82F6]/40 text-slate-500 cursor-not-allowed border border-[#2A3442]"
-                          : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                          ? "bg-[#D9E4EA] text-[#60717D] cursor-not-allowed border border-[#D9E4EA]"
+                          : "bg-[#173B57] hover:bg-[#245A7A] active:scale-[0.99] cursor-pointer shadow-xs"
                       }`}
                     >
                       <Send className={`h-3.5 w-3.5 ${submitting ? "animate-pulse" : ""}`} />

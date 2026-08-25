@@ -38,6 +38,7 @@ const ATTACK_TYPES = [
   "APT Activity","Port Scan","Phishing Campaign","Ransomware Delivery",
   "Zero-Day Exploit","Data Exfiltration","Brute Force","Command Injection",
 ];
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 const ri = (min: number, max: number) =>
   Math.floor(Math.random() * (max - min + 1)) + min;
@@ -182,7 +183,7 @@ export default function Hero() {
   const { ready, attacksToday, streams, countries, topCountry, logs, particles, netLines } = state;
 
   return (
-    <section className="relative w-full min-h-[85vh] flex items-center border-b border-[#27272A] py-12 md:py-16 select-text bg-[#09090B]">
+    <section className="relative w-full min-h-[85vh] flex items-center border-b border-[#D9E4EA] py-12 md:py-16 select-text bg-[#F5F8FA]">
       <style>{`
         @keyframes floatA{0%{transform:translate(0,0)}100%{transform:translate(10px,-10px)}}
         @keyframes floatB{0%{transform:translate(0,0)}100%{transform:translate(-10px,10px)}}
@@ -194,15 +195,15 @@ export default function Hero() {
       {/* Grid background */}
       <div className="pointer-events-none absolute inset-0 z-0"
         style={{
-          opacity: 0.015,
-          backgroundImage:"linear-gradient(#27272A 1px,transparent 1px),linear-gradient(90deg,#27272A 1px,transparent 1px)",
+          opacity: 0.4,
+          backgroundImage:"linear-gradient(#D9E4EA 1px,transparent 1px),linear-gradient(90deg,#D9E4EA 1px,transparent 1px)",
           backgroundSize:"56px 56px",
         }} />
 
       {/* Floating particles */}
       {particles.map(p => (
         <div key={p.id}
-          className="pointer-events-none absolute rounded-full bg-slate-700/20 z-0"
+          className="pointer-events-none absolute rounded-full bg-[#60717D]/10 z-0"
           style={{
             left:`${p.left}%`, top:`${p.top}%`,
             width:`${p.size}px`, height:`${p.size}px`,
@@ -217,7 +218,7 @@ export default function Hero() {
           <line key={l.id}
             x1={`${l.x1}%`} y1={`${l.y1}%`}
             x2={`${l.x2}%`} y2={`${l.y2}%`}
-            stroke="rgba(161,161,170,0.06)" strokeWidth="1"
+            stroke="rgba(96,113,125,0.08)" strokeWidth="1"
             style={{animation:`lineFade ${l.dur}s ease-in-out ${l.delay}s infinite`}}
           />
         ))}
@@ -227,19 +228,19 @@ export default function Hero() {
 
         {/* LEFT: Headline / CTAs */}
         <div className="lg:col-span-6 flex flex-col justify-center">
-          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-[42px] font-extrabold tracking-tight text-[#17232D] leading-tight">
             Structured Cybersecurity Playbooks{" "}
-            <span className="text-[#2563EB]">For Security Practitioners</span>
+            <span className="text-[#173B57]">For Security Practitioners</span>
           </h1>
 
-          <p className="mt-4 text-sm sm:text-base leading-relaxed text-[#A1A1AA] max-w-lg">
+          <p className="mt-4 text-sm sm:text-base leading-relaxed text-[#60717D] max-w-lg">
             Accelerate your security expertise with interactive runbooks and
             structured career pathways designed by industry practitioners.
           </p>
 
           <div className="mt-8 flex flex-wrap items-center gap-3">
             <Link href="/playbooks"
-              className="group flex h-10 items-center gap-2 rounded bg-[#2563EB] px-5 text-xs font-bold text-white transition-all hover:bg-blue-600 active:scale-[0.98] select-none shadow-none">
+              className="group flex h-10 items-center gap-2 rounded bg-[#173B57] px-5 text-xs font-bold text-white transition-all hover:bg-[#245A7A] active:scale-[0.98] select-none shadow-xs">
               Explore Playbooks
               <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1 stroke-[2]" />
             </Link>
@@ -248,15 +249,15 @@ export default function Hero() {
                 e.preventDefault();
                 document.getElementById("why-playsec")?.scrollIntoView({ behavior: "smooth" });
               }}
-              className="flex h-10 items-center justify-center gap-2 rounded border border-[#27272A] bg-[#18181B] px-5 text-xs font-bold text-[#FAFAFA] transition-all hover:bg-[#27272A] active:scale-[0.98] select-none">
+              className="flex h-10 items-center justify-center gap-2 rounded border border-[#D9E4EA] bg-white px-5 text-xs font-bold text-[#17232D] transition-all hover:bg-[#F5F8FA] active:scale-[0.98] select-none">
               Why PlaySec
             </a>
           </div>
 
-          <div className="mt-8 pt-6 border-t border-[#27272A] grid grid-cols-2 gap-y-2.5 gap-x-6 max-w-md">
+          <div className="mt-8 pt-6 border-t border-[#D9E4EA] grid grid-cols-2 gap-y-2.5 gap-x-6 max-w-md">
             {["Editorially reviewed","Updated regularly","Practical playbooks","Community verified"].map(label => (
-              <div key={label} className="flex items-center gap-2.5 text-xs text-[#A1A1AA]">
-                <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-[#18181B] text-[#2563EB] border border-[#27272A]">
+              <div key={label} className="flex items-center gap-2.5 text-xs text-[#60717D]">
+                <span className="flex h-4.5 w-4.5 shrink-0 items-center justify-center rounded-full bg-white text-[#173B57] border border-[#D9E4EA]">
                   <Check className="h-3 w-3 stroke-[2.5]" />
                 </span>
                 {label}
@@ -265,18 +266,18 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* RIGHT: Threat Intelligence Dashboard (No Neon, No Glows) */}
+        {/* RIGHT: Threat Intelligence Dashboard */}
         <div className="lg:col-span-6">
-          <div className="rounded border border-[#27272A] bg-[#18181B] p-5 shadow-sm">
+          <div className="rounded border border-[#D9E4EA] bg-white p-5 shadow-xs">
             {/* Panel header */}
-            <div className="flex items-center justify-between pb-3 border-b border-[#27272A] mb-4">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-[#A1A1AA]">
+            <div className="flex items-center justify-between pb-3 border-b border-[#D9E4EA] mb-4">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
                 Threat Intelligence Center
               </span>
-              <span className="flex items-center gap-1.5 text-[9px] text-[#EF4444] font-bold tracking-wider uppercase">
+              <span className="flex items-center gap-1.5 text-[9px] text-[#C95757] font-bold tracking-wider uppercase">
                 <span className="relative flex h-1.5 w-1.5">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-500 opacity-75" />
-                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-red-500" />
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#C95757] opacity-75" />
+                  <span className="relative inline-flex h-1.5 w-1.5 rounded-full bg-[#C95757]" />
                 </span>
                 Live Feed
               </span>
@@ -286,17 +287,17 @@ export default function Hero() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 
               {/* Card A – Summary */}
-              <div className="rounded border border-[#27272A] bg-[#09090B] p-4 flex flex-col gap-3">
-                <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#A1A1AA]">
-                  <Activity className="h-3.5 w-3.5 text-[#2563EB]" />
+              <div className="rounded border border-[#D9E4EA] bg-[#F5F8FA] p-4 flex flex-col gap-3">
+                <div className="flex items-center gap-1.5 text-[9px] font-bold uppercase tracking-wider text-[#60717D]">
+                  <Activity className="h-3.5 w-3.5 text-[#173B57]" />
                   Overview Stats
                 </div>
 
                 <div>
-                  <span className="text-[9px] uppercase tracking-wider text-slate-500 block">Attacks Logged</span>
+                  <span className="text-[9px] uppercase tracking-wider text-[#60717D] block">Attacks Logged</span>
                   <motion.span
                     key={attacksToday}
-                    className="text-lg font-bold text-white tabular-nums block"
+                    className="text-lg font-bold text-[#17232D] tabular-nums block"
                     initial={{ opacity: 0.8 }}
                     animate={{ opacity: 1 }}
                     transition={{ duration: 0.35 }}
@@ -305,28 +306,28 @@ export default function Hero() {
                   </motion.span>
                 </div>
 
-                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#27272A]">
+                <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[#D9E4EA]">
                   <div>
-                    <span className="text-[8px] uppercase tracking-wider text-slate-500 block">Active Briefs</span>
-                    <motion.span key={streams} className="text-xs font-bold text-[#2563EB]"
+                    <span className="text-[8px] uppercase tracking-wider text-[#60717D] block">Active Briefs</span>
+                    <motion.span key={streams} className="text-xs font-bold text-[#173B57]"
                       initial={{ opacity: 0.8 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
                       {ready ? streams.toLocaleString() : "—"}
                     </motion.span>
                   </div>
                   <div>
-                    <span className="text-[8px] uppercase tracking-wider text-slate-500 block">Scope</span>
-                    <motion.span key={countries} className="text-xs font-bold text-white"
+                    <span className="text-[8px] uppercase tracking-wider text-[#60717D] block">Scope</span>
+                    <motion.span key={countries} className="text-xs font-bold text-[#17232D]"
                       initial={{ opacity: 0.8 }} animate={{ opacity: 1 }} transition={{ duration: 0.4 }}>
                       {ready ? `${countries} Regions` : "—"}
                     </motion.span>
                   </div>
                 </div>
 
-                <div className="pt-2 border-t border-[#27272A]">
-                  <span className="text-[8px] uppercase tracking-wider text-slate-500 block">Active Target</span>
+                <div className="pt-2 border-t border-[#D9E4EA]">
+                  <span className="text-[8px] uppercase tracking-wider text-[#60717D] block">Active Target</span>
                   <AnimatePresence mode="wait">
                     <motion.span key={topCountry}
-                      className="text-[10px] font-semibold text-slate-300 block"
+                      className="text-[10px] font-semibold text-[#17232D] block"
                       initial={{ opacity: 0, y: 2 }} animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -2 }} transition={{ duration: 0.4 }}>
                       {topCountry}
@@ -336,10 +337,10 @@ export default function Hero() {
               </div>
 
               {/* Card B – Live Feed */}
-              <div className="rounded border border-[#27272A] bg-[#09090B] p-4 flex flex-col">
-                <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#27272A]/40">
-                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#A1A1AA] flex items-center gap-1">
-                    <Zap className="h-3.5 w-3.5 text-orange-400" />
+              <div className="rounded border border-[#D9E4EA] bg-[#F5F8FA] p-4 flex flex-col">
+                <div className="flex items-center justify-between mb-2 pb-1 border-b border-[#D9E4EA]">
+                  <span className="text-[9px] font-bold uppercase tracking-wider text-[#60717D] flex items-center gap-1">
+                    <Zap className="h-3.5 w-3.5 text-[#C28A32]" />
                     Live Activity
                   </span>
                 </div>
@@ -352,13 +353,13 @@ export default function Hero() {
                         animate={{ opacity: 1, y: 0 }}
                         exit={{ opacity: 0 }}
                         transition={{ duration: 0.2 }}
-                        className="px-2 py-1 rounded border border-[#27272A] bg-[#18181B] flex flex-col gap-0.5 shrink-0"
+                        className="px-2 py-1 rounded border border-[#D9E4EA] bg-white flex flex-col gap-0.5 shrink-0"
                       >
                         <div className="flex justify-between items-center gap-1">
-                          <span className="text-[8px] text-slate-500 font-mono shrink-0">{log.time}</span>
-                          <span className="text-[9px] text-[#FAFAFA] font-bold truncate">{log.type}</span>
+                          <span className="text-[8px] text-[#60717D] font-mono shrink-0">{log.time}</span>
+                          <span className="text-[9px] text-[#17232D] font-bold truncate">{log.type}</span>
                         </div>
-                        <span className="text-[8px] text-[#2563EB] font-medium truncate">{log.route}</span>
+                        <span className="text-[8px] text-[#173B57] font-medium truncate">{log.route}</span>
                       </motion.div>
                     ))}
                   </AnimatePresence>

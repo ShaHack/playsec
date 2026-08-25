@@ -256,14 +256,14 @@ export default function CommunityPage() {
     <>
       <Navbar />
 
-      <main className="flex-1 text-[#F3F4F6] relative overflow-hidden select-text bg-[#0B0F14] pb-20 pt-8 min-h-screen">
+      <main className="flex-1 text-[#17232D] relative overflow-hidden select-text bg-[#F5F8FA] pb-20 pt-8 min-h-screen">
         
-        {/* Grid Background */}
-        <div className="pointer-events-none fixed inset-0 z-0 bg-[#0B0F14]" />
+        {/* Subtle Grid Background */}
+        <div className="pointer-events-none fixed inset-0 z-0 bg-[#F5F8FA]" />
         <div className="pointer-events-none fixed inset-0 z-0"
           style={{
-            opacity: 0.012,
-            backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
+            opacity: 0.4,
+            backgroundImage: "linear-gradient(#D9E4EA 1px, transparent 1px), linear-gradient(90deg, #D9E4EA 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }} />
 
@@ -274,15 +274,15 @@ export default function CommunityPage() {
               initial={{ opacity: 0, y: -12 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -12 }}
-              className={`fixed top-16 right-5 z-[60] flex items-start gap-3 px-4 py-3 rounded border shadow-xl max-w-sm select-none backdrop-blur-md text-xs font-semibold ${
+              className={`fixed top-16 right-5 z-[60] flex items-start gap-3 px-4 py-3 rounded border shadow-md max-w-sm select-none text-xs font-semibold ${
                 toast.type === "success"
-                  ? "bg-[#141A22] border-[#10B981]/50 text-[#10B981]"
-                  : "bg-[#141A22] border-[#EF4444]/50 text-[#EF4444]"
+                  ? "bg-white border-[#C4E4D9] text-[#3D8B72]"
+                  : "bg-white border-[#F5D3D3] text-[#C95757]"
               }`}
             >
               {toast.type === "success" ? <Check className="h-4 w-4 shrink-0 mt-0.5" /> : <AlertCircle className="h-4 w-4 shrink-0 mt-0.5" />}
-              <span className="leading-snug text-[#F3F4F6]">{toast.msg}</span>
-              <button onClick={() => setToast((p) => ({ ...p, show: false }))} className="ml-auto text-slate-400 hover:text-white">
+              <span className="leading-snug text-[#17232D]">{toast.msg}</span>
+              <button onClick={() => setToast((p) => ({ ...p, show: false }))} className="ml-auto text-[#60717D] hover:text-[#17232D]">
                 <X className="h-3.5 w-3.5" />
               </button>
             </motion.div>
@@ -291,13 +291,13 @@ export default function CommunityPage() {
 
         {/* ── HEADER ── */}
         <section className="relative z-10 mx-auto max-w-[1200px] px-6 text-center mb-10">
-          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] bg-[#3B82F6]/10 border border-[#3B82F6]/20 px-3 py-1 rounded mb-4">
+          <span className="inline-flex items-center gap-1.5 text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B57] bg-[#E9F1F5] border border-[#D9E4EA] px-3 py-1 rounded mb-4">
             Support Center
           </span>
-          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-white leading-tight">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-extrabold tracking-tight text-[#17232D] leading-tight">
             Community Support
           </h1>
-          <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#A8B3C5] max-w-xl mx-auto">
+          <p className="mt-3 text-sm sm:text-base leading-relaxed text-[#60717D] max-w-xl mx-auto">
             Share your ideas, suggestions, or contact the PlaySec team.
           </p>
         </section>
@@ -311,14 +311,14 @@ export default function CommunityPage() {
             <div className="lg:col-span-7 space-y-6">
               
               {/* Tab Switcher: 💡 Feedback & 📩 Contact Support */}
-              <div className="flex border-b border-[#2A3442] bg-[#141A22] p-1 rounded-t border-t border-x select-none">
+              <div className="flex border-b border-[#D9E4EA] bg-white p-1 rounded-t border-t border-x select-none shadow-xs">
                 <button
                   type="button"
                   onClick={() => { setActiveTab("feedback"); setSuccessBanner(""); }}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded text-xs font-bold transition-all cursor-pointer ${
                     activeTab === "feedback"
-                      ? "bg-[#3B82F6] text-white shadow-md"
-                      : "text-[#A8B3C5] hover:text-white hover:bg-[#0B0F14]/50"
+                      ? "bg-[#173B57] text-white shadow-xs"
+                      : "text-[#60717D] hover:text-[#17232D] hover:bg-[#F5F8FA]"
                   }`}
                 >
                   <Sparkles className="h-4 w-4" />
@@ -330,8 +330,8 @@ export default function CommunityPage() {
                   onClick={() => { setActiveTab("support"); setSuccessBanner(""); }}
                   className={`flex-1 flex items-center justify-center gap-2 py-3 px-4 rounded text-xs font-bold transition-all cursor-pointer ${
                     activeTab === "support"
-                      ? "bg-[#3B82F6] text-white shadow-md"
-                      : "text-[#A8B3C5] hover:text-white hover:bg-[#0B0F14]/50"
+                      ? "bg-[#173B57] text-white shadow-xs"
+                      : "text-[#60717D] hover:text-[#17232D] hover:bg-[#F5F8FA]"
                   }`}
                 >
                   <LifeBuoy className="h-4 w-4" />
@@ -344,7 +344,7 @@ export default function CommunityPage() {
                 <motion.div 
                   initial={{ opacity: 0, y: -6 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="p-4 rounded border border-[#10B981]/40 bg-[#10B981]/10 text-[#10B981] text-xs font-semibold flex items-center gap-2.5 shadow-sm"
+                  className="p-4 rounded border border-[#C4E4D9] bg-[#E8F4F0] text-[#3D8B72] text-xs font-semibold flex items-center gap-2.5 shadow-xs"
                 >
                   <CheckCircle className="h-4.5 w-4.5 shrink-0" />
                   <span>{successBanner}</span>
@@ -357,14 +357,14 @@ export default function CommunityPage() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="rounded-b border border-[#2A3442] bg-[#141A22] p-6 shadow-sm space-y-5"
+                  className="rounded-b border border-[#D9E4EA] bg-white p-6 shadow-xs space-y-5"
                 >
-                  <div className="pb-3 border-b border-[#2A3442]/60 flex items-center justify-between">
+                  <div className="pb-3 border-b border-[#D9E4EA] flex items-center justify-between">
                     <div>
-                      <h2 className="text-sm font-extrabold text-white">Platform Feedback</h2>
-                      <p className="text-[11px] text-[#A8B3C5]">Help us shape the future of PlaySec learning tools.</p>
+                      <h2 className="text-sm font-extrabold text-[#17232D]">Platform Feedback</h2>
+                      <p className="text-[11px] text-[#60717D]">Help us shape the future of PlaySec learning tools.</p>
                     </div>
-                    <span className="text-[9px] font-mono uppercase tracking-wider text-emerald-400 bg-emerald-400/10 px-2 py-0.5 rounded border border-emerald-400/20">
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-[#3D8B72] bg-[#E8F4F0] px-2 py-0.5 rounded border border-[#C4E4D9]">
                       Community Driven
                     </span>
                   </div>
@@ -374,28 +374,28 @@ export default function CommunityPage() {
                     {/* Optional Name & Email */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Name <span className="text-slate-500 font-normal">(Optional)</span>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                          Name <span className="text-[#8193A0] font-normal">(Optional)</span>
                         </label>
                         <input
                           type="text"
                           value={fbName}
                           onChange={(e) => setFbName(e.target.value)}
                           placeholder="e.g. Alex Morgan"
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Email Address <span className="text-slate-500 font-normal">(Optional)</span>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                          Email Address <span className="text-[#8193A0] font-normal">(Optional)</span>
                         </label>
                         <input
                           type="email"
                           value={fbEmail}
                           onChange={(e) => setFbEmail(e.target.value)}
                           placeholder="alex@organization.com"
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -403,13 +403,13 @@ export default function CommunityPage() {
                     {/* Feedback Type & Rating */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
                           Feedback Type
                         </label>
                         <select
                           value={fbType}
                           onChange={(e) => setFbType(e.target.value as "Suggestion" | "Feature Request" | "General Feedback" | "Compliment")}
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] focus:border-[#4FAFC1] focus:outline-none cursor-pointer"
                         >
                           <option value="Suggestion">Suggestion</option>
                           <option value="Feature Request">Feature Request</option>
@@ -419,10 +419,10 @@ export default function CommunityPage() {
                       </div>
 
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
                           ⭐ Rating (1–5 Stars)
                         </label>
-                        <div className="flex items-center gap-1.5 h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14]">
+                        <div className="flex items-center gap-1.5 h-9 px-3 rounded border border-[#D9E4EA] bg-white">
                           {[1, 2, 3, 4, 5].map((star) => (
                             <button
                               key={star}
@@ -430,18 +430,18 @@ export default function CommunityPage() {
                               onClick={() => setFbRating(star)}
                               onMouseEnter={() => setFbHoverRating(star)}
                               onMouseLeave={() => setFbHoverRating(0)}
-                              className="p-1 text-slate-400 hover:scale-110 transition-transform cursor-pointer focus:outline-none"
+                              className="p-1 text-[#D9E4EA] hover:scale-110 transition-transform cursor-pointer focus:outline-none"
                             >
                               <Star
                                 className={`h-4 w-4 ${
                                   (fbHoverRating || fbRating) >= star
-                                    ? "fill-amber-400 text-amber-400"
-                                    : "text-slate-600"
+                                    ? "fill-[#C28A32] text-[#C28A32]"
+                                    : "text-[#D9E4EA]"
                                 }`}
                               />
                             </button>
                           ))}
-                          <span className="ml-auto text-[10px] font-mono text-slate-400">
+                          <span className="ml-auto text-[10px] font-mono text-[#60717D]">
                             {fbRating}/5
                           </span>
                         </div>
@@ -450,8 +450,8 @@ export default function CommunityPage() {
 
                     {/* Message textarea */}
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Message <span className="text-emerald-400">*</span>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                        Message <span className="text-[#3D8B72]">*</span>
                       </label>
                       <textarea
                         required
@@ -459,17 +459,17 @@ export default function CommunityPage() {
                         value={fbMessage}
                         onChange={(e) => setFbMessage(e.target.value)}
                         placeholder="Tell us how we can improve PlaySec..."
-                        className="w-full p-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none resize-none"
+                        className="w-full p-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none resize-none"
                       />
                     </div>
 
                     {!isLoggedIn && (
-                      <div className="p-3 rounded border border-[#2A3442] bg-[#0B0F14] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                        <span className="text-[#A8B3C5]">Please sign in to submit feedback.</span>
+                      <div className="p-3 rounded border border-[#D9E4EA] bg-[#F5F8FA] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                        <span className="text-[#60717D]">Please sign in to submit feedback.</span>
                         <button
                           type="button"
                           onClick={loginWithGoogle}
-                          className="px-3.5 py-1.5 rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
+                          className="px-3.5 py-1.5 rounded bg-[#173B57] hover:bg-[#245A7A] text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
                         >
                           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current shrink-0" aria-hidden="true">
                             <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.438a6.445 6.445 0 016.437-6.437c1.558 0 2.978.557 4.095 1.486L21.2 4.135C19.268 2.502 16.742 1.5 12.24 1.5c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5c5.385 0 10.07-3.793 10.07-10.5 0-.66-.06-1.285-.2-1.715H12.24z"/>
@@ -484,8 +484,8 @@ export default function CommunityPage() {
                       disabled={submitting || !isLoggedIn}
                       className={`w-full h-10 rounded text-xs font-bold text-white transition-all flex items-center justify-center gap-2 select-none ${
                         submitting || !isLoggedIn
-                          ? "bg-[#3B82F6]/40 text-slate-500 cursor-not-allowed border border-[#2A3442]"
-                          : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                          ? "bg-[#D9E4EA] text-[#60717D] cursor-not-allowed border border-[#D9E4EA]"
+                          : "bg-[#173B57] hover:bg-[#245A7A] active:scale-[0.99] cursor-pointer shadow-xs"
                       }`}
                     >
                       <Sparkles className={`h-4 w-4 ${submitting ? "animate-spin" : ""}`} />
@@ -502,14 +502,14 @@ export default function CommunityPage() {
                   initial={{ opacity: 0, y: 6 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ duration: 0.15 }}
-                  className="rounded-b border border-[#2A3442] bg-[#141A22] p-6 shadow-sm space-y-5"
+                  className="rounded-b border border-[#D9E4EA] bg-white p-6 shadow-xs space-y-5"
                 >
-                  <div className="pb-3 border-b border-[#2A3442]/60 flex items-center justify-between">
+                  <div className="pb-3 border-b border-[#D9E4EA] flex items-center justify-between">
                     <div>
-                      <h2 className="text-sm font-extrabold text-white">Technical Support Request</h2>
-                      <p className="text-[11px] text-[#A8B3C5]">Direct assistance from the PlaySec engineering desk.</p>
+                      <h2 className="text-sm font-extrabold text-[#17232D]">Technical Support Request</h2>
+                      <p className="text-[11px] text-[#60717D]">Direct assistance from the PlaySec engineering desk.</p>
                     </div>
-                    <span className="text-[9px] font-mono uppercase tracking-wider text-blue-400 bg-blue-400/10 px-2 py-0.5 rounded border border-blue-400/20">
+                    <span className="text-[9px] font-mono uppercase tracking-wider text-[#4FAFC1] bg-[#E6F4F7] px-2 py-0.5 rounded border border-[#BCE3EB]">
                       SLA: 24h Response
                     </span>
                   </div>
@@ -519,8 +519,8 @@ export default function CommunityPage() {
                     {/* Name & Email */}
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Name <span className="text-emerald-400">*</span>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                          Name <span className="text-[#3D8B72]">*</span>
                         </label>
                         <input
                           type="text"
@@ -528,13 +528,13 @@ export default function CommunityPage() {
                           value={spName}
                           onChange={(e) => setSpName(e.target.value)}
                           placeholder="Jane Doe"
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Email Address <span className="text-emerald-400">*</span>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                          Email Address <span className="text-[#3D8B72]">*</span>
                         </label>
                         <input
                           type="email"
@@ -542,7 +542,7 @@ export default function CommunityPage() {
                           value={spEmail}
                           onChange={(e) => setSpEmail(e.target.value)}
                           placeholder="jane@organization.com"
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none"
                         />
                       </div>
                     </div>
@@ -550,8 +550,8 @@ export default function CommunityPage() {
                     {/* Subject & Priority Dropdown */}
                     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                       <div className="sm:col-span-2 space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                          Subject <span className="text-emerald-400">*</span>
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                          Subject <span className="text-[#3D8B72]">*</span>
                         </label>
                         <input
                           type="text"
@@ -559,18 +559,18 @@ export default function CommunityPage() {
                           value={spSubject}
                           onChange={(e) => setSpSubject(e.target.value)}
                           placeholder="Brief summary of support inquiry"
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none"
                         />
                       </div>
 
                       <div className="space-y-1">
-                        <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
                           Priority
                         </label>
                         <select
                           value={spPriority}
                           onChange={(e) => setSpPriority(e.target.value as "Low" | "Medium" | "High")}
-                          className="w-full h-9 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white focus:border-[#3B82F6] focus:outline-none cursor-pointer"
+                          className="w-full h-9 px-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] focus:border-[#4FAFC1] focus:outline-none cursor-pointer"
                         >
                           <option value="Low">Low</option>
                           <option value="Medium">Medium</option>
@@ -581,8 +581,8 @@ export default function CommunityPage() {
 
                     {/* Message textarea */}
                     <div className="space-y-1">
-                      <label className="block text-[10px] font-bold uppercase tracking-wider text-slate-400">
-                        Message <span className="text-emerald-400">*</span>
+                      <label className="block text-[10px] font-bold uppercase tracking-wider text-[#60717D]">
+                        Message <span className="text-[#3D8B72]">*</span>
                       </label>
                       <textarea
                         required
@@ -590,17 +590,17 @@ export default function CommunityPage() {
                         value={spMessage}
                         onChange={(e) => setSpMessage(e.target.value)}
                         placeholder="Describe your issue in detail..."
-                        className="w-full p-3 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-600 focus:border-[#3B82F6] focus:outline-none resize-none"
+                        className="w-full p-3 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none resize-none"
                       />
                     </div>
 
                     {!isLoggedIn && (
-                      <div className="p-3 rounded border border-[#2A3442] bg-[#0B0F14] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                        <span className="text-[#A8B3C5]">Please sign in to submit support request.</span>
+                      <div className="p-3 rounded border border-[#D9E4EA] bg-[#F5F8FA] flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+                        <span className="text-[#60717D]">Please sign in to submit support request.</span>
                         <button
                           type="button"
                           onClick={loginWithGoogle}
-                          className="px-3.5 py-1.5 rounded bg-[#3B82F6] hover:bg-blue-600 text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
+                          className="px-3.5 py-1.5 rounded bg-[#173B57] hover:bg-[#245A7A] text-white font-bold text-xs flex items-center gap-2 cursor-pointer transition-colors"
                         >
                           <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current shrink-0" aria-hidden="true">
                             <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.438a6.445 6.445 0 016.437-6.437c1.558 0 2.978.557 4.095 1.486L21.2 4.135C19.268 2.502 16.742 1.5 12.24 1.5c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5c5.385 0 10.07-3.793 10.07-10.5 0-.66-.06-1.285-.2-1.715H12.24z"/>
@@ -615,8 +615,8 @@ export default function CommunityPage() {
                       disabled={submitting || !isLoggedIn}
                       className={`w-full h-10 rounded text-xs font-bold text-white transition-all flex items-center justify-center gap-2 select-none ${
                         submitting || !isLoggedIn
-                          ? "bg-[#3B82F6]/40 text-slate-500 cursor-not-allowed border border-[#2A3442]"
-                          : "bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.99] cursor-pointer"
+                          ? "bg-[#D9E4EA] text-[#60717D] cursor-not-allowed border border-[#D9E4EA]"
+                          : "bg-[#173B57] hover:bg-[#245A7A] active:scale-[0.99] cursor-pointer shadow-xs"
                       }`}
                     >
                       <Send className={`h-4 w-4 ${submitting ? "animate-pulse" : ""}`} />
@@ -632,13 +632,13 @@ export default function CommunityPage() {
             {/* ── RIGHT COLUMN: FAQ ACCORDION ── */}
             <div className="lg:col-span-5 space-y-6">
               
-              <div className="rounded border border-[#2A3442] bg-[#141A22] p-5 shadow-sm space-y-4">
-                <div className="flex items-center justify-between border-b border-[#2A3442]/60 pb-3">
+              <div className="rounded border border-[#D9E4EA] bg-white p-5 shadow-xs space-y-4">
+                <div className="flex items-center justify-between border-b border-[#D9E4EA] pb-3">
                   <div className="flex items-center gap-2">
-                    <HelpCircle className="h-4 w-4 text-[#3B82F6]" />
-                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-white">Frequently Asked Questions</h3>
+                    <HelpCircle className="h-4 w-4 text-[#4FAFC1]" />
+                    <h3 className="text-xs font-extrabold uppercase tracking-wider text-[#17232D]">Frequently Asked Questions</h3>
                   </div>
-                  <span className="text-[10px] text-slate-500 font-mono">10 Q&A</span>
+                  <span className="text-[10px] text-[#60717D] font-mono">10 Q&A</span>
                 </div>
 
                 {/* FAQ Search */}
@@ -648,10 +648,10 @@ export default function CommunityPage() {
                     value={faqSearch}
                     onChange={(e) => setFaqSearch(e.target.value)}
                     placeholder="Search support documentation & FAQs..."
-                    className="w-full h-9 pl-3 pr-8 rounded border border-[#2A3442] bg-[#0B0F14] text-xs text-white placeholder:text-slate-500 focus:border-[#3B82F6] focus:outline-none"
+                    className="w-full h-9 pl-3 pr-8 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#8193A0] focus:border-[#4FAFC1] focus:outline-none"
                   />
                   {faqSearch && (
-                    <button onClick={() => setFaqSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white">
+                    <button onClick={() => setFaqSearch("")} className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#60717D] hover:text-[#17232D]">
                       <X className="h-4.5 w-4.5" />
                     </button>
                   )}
@@ -663,13 +663,13 @@ export default function CommunityPage() {
                     filteredFaqs.map((faq) => {
                       const isExpanded = expandedFaqId === faq.id;
                       return (
-                        <div key={faq.id} className="border border-[#2A3442] rounded overflow-hidden">
+                        <div key={faq.id} className="border border-[#D9E4EA] rounded overflow-hidden">
                           <button
                             onClick={() => setExpandedFaqId(isExpanded ? null : faq.id)}
-                            className="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#0B0F14] text-xs font-bold text-slate-200 hover:text-white"
+                            className="w-full flex items-center justify-between px-3.5 py-2.5 text-left bg-[#F5F8FA] text-xs font-bold text-[#17232D] hover:bg-[#EBF2F6]"
                           >
                             <span>{faq.question}</span>
-                            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-150 ${isExpanded ? "rotate-180 text-[#3B82F6]" : "text-slate-400"}`} />
+                            <ChevronDown className={`h-4 w-4 shrink-0 transition-transform duration-150 ${isExpanded ? "rotate-180 text-[#4FAFC1]" : "text-[#60717D]"}`} />
                           </button>
                           
                           <AnimatePresence initial={false}>
@@ -679,7 +679,7 @@ export default function CommunityPage() {
                                 animate={{ height: "auto", opacity: 1 }}
                                 exit={{ height: 0, opacity: 0 }}
                                 transition={{ duration: 0.15 }}
-                                className="px-3.5 py-2.5 bg-[#141A22]/50 border-t border-[#2A3442]/40 text-xs text-[#A8B3C5] leading-relaxed"
+                                className="px-3.5 py-2.5 bg-white border-t border-[#D9E4EA] text-xs text-[#60717D] leading-relaxed"
                               >
                                 {faq.answer}
                               </motion.div>
@@ -689,7 +689,7 @@ export default function CommunityPage() {
                       );
                     })
                   ) : (
-                    <div className="text-center py-6 text-xs text-[#A8B3C5]">No matching FAQs found.</div>
+                    <div className="text-center py-6 text-xs text-[#60717D]">No matching FAQs found.</div>
                   )}
                 </div>
               </div>

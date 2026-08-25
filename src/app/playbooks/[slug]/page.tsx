@@ -85,8 +85,6 @@ export default function PlaybookSlugPage({ params }: PageProps) {
         ];
   }, [playbook]);
 
-
-
   // Load Playbook & Related dynamic briefings
   useEffect(() => {
     async function loadPlaybook() {
@@ -301,9 +299,9 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-[#A8B3C5]">
+        <main className="min-h-screen bg-[#F5F8FA] flex items-center justify-center text-[#60717D]">
           <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6] mx-auto mb-4" />
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4FAFC1] mx-auto mb-4" />
             <p className="text-xs">Loading briefing details...</p>
           </div>
         </main>
@@ -316,10 +314,10 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     return (
       <>
         <Navbar />
-        <main className="min-h-screen bg-[#0B0F14] flex items-center justify-center text-[#EF4444] p-6">
-          <div className="text-center max-w-md bg-[#141A22] border border-[#2A3442] p-6 rounded">
+        <main className="min-h-screen bg-[#F5F8FA] flex items-center justify-center text-[#C95757] p-6">
+          <div className="text-center max-w-md bg-white border border-[#D9E4EA] p-6 rounded">
             <h2 className="text-sm font-bold uppercase tracking-wider mb-2">Operational Failure</h2>
-            <p className="text-xs text-[#A8B3C5] leading-relaxed">{errorMsg}</p>
+            <p className="text-xs text-[#60717D] leading-relaxed">{errorMsg}</p>
           </div>
         </main>
         <Footer />
@@ -339,13 +337,13 @@ export default function PlaybookSlugPage({ params }: PageProps) {
     <>
       <Navbar />
       
-      <main className="min-h-screen bg-[#0B0F14] text-[#F3F4F6] py-10 relative overflow-hidden select-text">
+      <main className="min-h-screen bg-[#F5F8FA] text-[#17232D] py-10 relative overflow-hidden select-text">
         
         {/* Subtle grid background */}
         <div className="pointer-events-none absolute inset-0 z-0"
           style={{
-            opacity: 0.015,
-            backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
+            opacity: 0.4,
+            backgroundImage: "linear-gradient(#D9E4EA 1px, transparent 1px), linear-gradient(90deg, #D9E4EA 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }} />
 
@@ -358,9 +356,9 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                 initial={{ opacity: 0, y: -20, scale: 0.95 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.95 }}
-                className="fixed top-24 right-6 z-50 flex items-center gap-2 bg-[#141A22] border border-[#2A3442] text-white px-4 py-2.5 rounded shadow-sm text-xs font-semibold select-none"
+                className="fixed top-24 right-6 z-50 flex items-center gap-2 bg-white border border-[#D9E4EA] text-[#17232D] px-4 py-2.5 rounded shadow-md text-xs font-semibold select-none"
               >
-                <Check className="h-4 w-4 text-[#10B981]" />
+                <Check className="h-4 w-4 text-[#3D8B72]" />
                 {toastMsg}
               </motion.div>
             )}
@@ -370,7 +368,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
           <div className="mb-4">
             <Link 
               href="/playbooks"
-              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#A8B3C5] hover:text-white transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-semibold text-[#60717D] hover:text-[#17232D] transition-colors"
             >
               <ChevronRight className="h-4 w-4 rotate-180" />
               Back to Security Briefings
@@ -391,10 +389,10 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                 ];
 
             return (
-              <div className="mb-4 flex items-center justify-between border border-[#2A3442] bg-[#141A22] px-4 py-2.5 rounded shadow-sm">
+              <div className="mb-4 flex items-center justify-between border border-[#D9E4EA] bg-white px-4 py-2.5 rounded shadow-xs">
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 text-[#3B82F6]" />
-                  <span className="text-xs font-bold text-white uppercase tracking-wider">Audio Language</span>
+                  <Globe className="h-4 w-4 text-[#4FAFC1]" />
+                  <span className="text-xs font-bold text-[#17232D] uppercase tracking-wider">Audio Language</span>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {(["English", "Tamil", "Hindi"] as const).map((lang) => {
@@ -415,12 +413,12 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                             handleLanguageChange(lang);
                           }
                         }}
-                        className={`px-3 py-1 rounded text-xs font-bold transition-all select-none focus:outline-none focus:ring-2 focus:ring-[#3B82F6] ${
+                        className={`px-3 py-1 rounded text-xs font-bold transition-all select-none focus:outline-none focus:ring-2 focus:ring-[#4FAFC1] ${
                           !isAvailable
-                            ? "bg-[#0B0F14]/50 border border-[#2A3442]/40 text-slate-600 cursor-not-allowed opacity-50"
+                            ? "bg-[#F5F8FA] border border-[#D9E4EA] text-[#8193A0] cursor-not-allowed opacity-60"
                             : isSelected
-                            ? "bg-[#3B82F6] text-white shadow cursor-pointer"
-                            : "bg-[#0B0F14] border border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500 cursor-pointer"
+                            ? "bg-[#173B57] text-white shadow-xs cursor-pointer"
+                            : "bg-white border border-[#D9E4EA] text-[#60717D] hover:text-[#17232D] hover:bg-[#F5F8FA] cursor-pointer"
                         }`}
                         title={!isAvailable ? `${lang} track unavailable for this playbook` : `Switch to ${lang}`}
                       >
@@ -434,20 +432,11 @@ export default function PlaybookSlugPage({ params }: PageProps) {
           })()}
 
           {/* SPOTIFY-STYLE AUDIO BOARD */}
-          <section className="rounded border border-[#2A3442] bg-[#141A22] p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-center shadow-sm">
+          <section className="rounded border border-[#D9E4EA] bg-white p-6 sm:p-8 flex flex-col md:flex-row gap-6 items-center shadow-xs">
             {/* Playbook Cover Art */}
-            <div className="relative h-44 w-44 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none flex items-center justify-center">
+            <div className="relative h-44 w-44 shrink-0 rounded border border-[#D9E4EA] bg-[#F5F8FA] overflow-hidden select-none flex items-center justify-center">
               {playbook.cover_image ? (
                 <>
-                  <Image
-                    src={playbook.cover_image}
-                    alt=""
-                    fill
-                    sizes="176px"
-                    className="object-cover blur-lg opacity-35 scale-125 pointer-events-none"
-                    unoptimized
-                    priority
-                  />
                   <Image 
                     src={playbook.cover_image} 
                     alt={playbook.title} 
@@ -459,7 +448,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                   />
                 </>
               ) : (
-                <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
+                <div className="h-full w-full flex items-center justify-center text-[#60717D]">
                   <BookOpen className="h-8 w-8" />
                 </div>
               )}
@@ -469,21 +458,21 @@ export default function PlaybookSlugPage({ params }: PageProps) {
             <div className="flex-1 flex flex-col w-full text-center md:text-left">
               
               {/* Trust Tag Row */}
-              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mb-2.5 text-[9px] font-bold uppercase tracking-wider text-[#A8B3C5]">
-                <span className="flex items-center gap-1 text-[#10B981] bg-[#10B981]/10 px-2 py-0.5 rounded border border-[#10B981]/20">
+              <div className="flex flex-wrap items-center justify-center md:justify-start gap-2.5 mb-2.5 text-[9px] font-bold uppercase tracking-wider text-[#60717D]">
+                <span className="flex items-center gap-1 text-[#3D8B72] bg-[#E8F4F0] px-2 py-0.5 rounded border border-[#C4E4D9]">
                   <CheckCircle2 className="h-3 w-3" />
                   Security Reviewed
                 </span>
-                <span className="bg-[#0B0F14] px-2 py-0.5 rounded border border-[#2A3442]">
+                <span className="bg-[#F5F8FA] px-2 py-0.5 rounded border border-[#D9E4EA]">
                   v1.2 (Latest)
                 </span>
               </div>
 
-              <h1 className="text-xl sm:text-2xl font-extrabold text-white tracking-tight leading-tight mb-2">
+              <h1 className="text-xl sm:text-2xl font-extrabold text-[#17232D] tracking-tight leading-tight mb-2">
                 {playbook.title}
               </h1>
 
-              <p className="text-xs sm:text-sm leading-relaxed text-[#A8B3C5] mb-4">
+              <p className="text-xs sm:text-sm leading-relaxed text-[#60717D] mb-4">
                 {playbook.description}
               </p>
 
@@ -506,7 +495,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                 const activeAudioUrl = currentTrack?.audio_url || playbook.audio_url || "";
 
                 return (
-                  <div className="bg-[#0B0F14] border border-[#2A3442] rounded p-4 mb-4 select-none">
+                  <div className="bg-[#F5F8FA] border border-[#D9E4EA] rounded p-4 mb-4 select-none">
                     
                     {/* Audio Seek bar */}
                     <audio 
@@ -570,10 +559,10 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                         step="0.1"
                         value={progress}
                         onChange={handleProgressChange}
-                        className="w-full h-1 bg-[#2A3442] rounded-lg appearance-none cursor-pointer accent-[#3B82F6]"
+                        className="w-full h-1 bg-[#D9E4EA] rounded-lg appearance-none cursor-pointer accent-[#4FAFC1]"
                         aria-label="Audio progress slider"
                       />
-                      <div className="flex justify-between text-[10px] text-[#A8B3C5] font-mono">
+                      <div className="flex justify-between text-[10px] text-[#60717D] font-mono">
                         <span>{formatTime(currentTimeSec)}</span>
                         <span>{playerStatus === "loading" ? "Loading..." : formatTime(durationSec)}</span>
                       </div>
@@ -584,11 +573,11 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                       
                       {/* Playback speed control */}
                       <div className="flex items-center gap-1 justify-start">
-                        <span className="text-[8px] font-bold text-slate-500 uppercase tracking-wider">Speed:</span>
+                        <span className="text-[8px] font-bold text-[#60717D] uppercase tracking-wider">Speed:</span>
                         <select
                           value={playbackSpeed}
                           onChange={(e) => setPlaybackSpeed(parseFloat(e.target.value))}
-                          className="bg-[#141A22] border border-[#2A3442] rounded px-1.5 py-0.5 text-[10px] text-white font-semibold focus:outline-none cursor-pointer"
+                          className="bg-white border border-[#D9E4EA] rounded px-1.5 py-0.5 text-[10px] text-[#17232D] font-semibold focus:outline-none cursor-pointer"
                         >
                           {speedOptions.map((opt) => (
                             <option key={opt} value={opt}>
@@ -602,7 +591,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                       <div className="flex items-center justify-center gap-3">
                         <button 
                           onClick={handleSkipBackward}
-                          className="p-1 text-slate-400 hover:text-white hover:bg-[#141A22] rounded transition-colors focus:outline-none"
+                          className="p-1 text-[#60717D] hover:text-[#17232D] hover:bg-white rounded transition-colors focus:outline-none"
                           aria-label="Skip backward 10 seconds"
                         >
                           <RotateCcw className="h-4.5 w-4.5" />
@@ -611,7 +600,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                         <button 
                           onClick={togglePlayPause}
                           disabled={playerStatus === "loading"}
-                          className="h-10 w-10 rounded-full bg-[#3B82F6] hover:bg-blue-600 disabled:opacity-70 text-white flex items-center justify-center shadow-none transition-all focus:outline-none cursor-pointer"
+                          className="h-10 w-10 rounded-full bg-[#173B57] hover:bg-[#245A7A] disabled:opacity-70 text-white flex items-center justify-center shadow-xs transition-all focus:outline-none cursor-pointer"
                           aria-label={playerStatus === "playing" || isPlaying ? "Pause audio playback" : "Play audio playback"}
                         >
                           {playerStatus === "loading" ? (
@@ -625,7 +614,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
                         <button 
                           onClick={handleSkipForward}
-                          className="p-1 text-slate-400 hover:text-white hover:bg-[#141A22] rounded transition-colors focus:outline-none"
+                          className="p-1 text-[#60717D] hover:text-[#17232D] hover:bg-white rounded transition-colors focus:outline-none"
                           aria-label="Skip forward 10 seconds"
                         >
                           <RotateCw className="h-4.5 w-4.5" />
@@ -634,14 +623,14 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
                       {/* Volume slider */}
                       <div className="flex items-center gap-1.5 justify-end">
-                        <Volume2 className="h-3.5 w-3.5 text-slate-500" />
+                        <Volume2 className="h-3.5 w-3.5 text-[#60717D]" />
                         <input
                           type="range"
                           min="0"
                           max="100"
                           value={volume}
                           onChange={(e) => setVolume(parseInt(e.target.value, 10))}
-                          className="w-14 h-1 bg-[#2A3442] rounded-lg appearance-none cursor-pointer accent-[#3B82F6]"
+                          className="w-14 h-1 bg-[#D9E4EA] rounded-lg appearance-none cursor-pointer accent-[#4FAFC1]"
                           aria-label="Volume level control slider"
                         />
                       </div>
@@ -651,7 +640,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
               })()}
 
               {/* Action buttons + metadata */}
-              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#2A3442] pt-4 text-xs text-[#A8B3C5]">
+              <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#D9E4EA] pt-4 text-xs text-[#60717D]">
                 <div className="flex items-center gap-4 flex-wrap justify-center">
                   <span className="flex items-center gap-1.5">
                     <Calendar className="h-3.5 w-3.5" />
@@ -695,7 +684,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
                       downloadFile(downloadUrl, `${playbook.title}_${selectedLanguage}`);
                     }}
-                    className="flex h-8 items-center gap-1.5 px-3 rounded border border-[#2A3442] bg-[#0B0F14] hover:border-slate-500 hover:text-white text-[#F3F4F6] transition-all select-none cursor-pointer"
+                    className="flex h-8 items-center gap-1.5 px-3 rounded border border-[#D9E4EA] bg-white hover:bg-[#F5F8FA] text-[#17232D] font-bold text-xs transition-all select-none cursor-pointer"
                   >
                     <Download className="h-4 w-4" />
                     <span>Download {selectedLanguage} MP3</span>
@@ -703,7 +692,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
                   <button 
                     disabled
-                    className="flex h-8 items-center gap-2 px-3 rounded border border-[#2A3442] bg-[#0B0F14]/40 text-slate-600 cursor-not-allowed select-none"
+                    className="flex h-8 items-center gap-2 px-3 rounded border border-[#D9E4EA] bg-[#F5F8FA] text-[#8193A0] cursor-not-allowed select-none"
                     title="Bookmark works only when authenticated."
                   >
                     <Bookmark className="h-4 w-4" />
@@ -712,7 +701,7 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
                   <button 
                     onClick={handleShare}
-                    className="flex h-8 w-8 items-center justify-center rounded border border-[#2A3442] bg-[#0B0F14] text-[#F3F4F6] hover:bg-[#141A22] hover:text-white transition-all"
+                    className="flex h-8 w-8 items-center justify-center rounded border border-[#D9E4EA] bg-white text-[#17232D] hover:bg-[#F5F8FA] transition-all"
                     aria-label="Copy page link"
                   >
                     <Share2 className="h-4 w-4" />
@@ -725,8 +714,8 @@ export default function PlaybookSlugPage({ params }: PageProps) {
 
           {/* RELATED AUDIO BRIEFINGS LIST */}
           {relatedPlaybooks.length > 0 && (
-            <section className="mt-12 border-t border-[#2A3442] pt-8">
-              <h2 className="text-base font-bold text-white mb-4 tracking-tight">
+            <section className="mt-12 border-t border-[#D9E4EA] pt-8">
+              <h2 className="text-base font-bold text-[#17232D] mb-4 tracking-tight">
                 Related Security Briefings
               </h2>
 
@@ -735,9 +724,9 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                   <Link
                     key={p.id}
                     href={`/playbooks/${p.slug}`}
-                    className="flex items-center gap-4 p-3 rounded border border-[#2A3442] bg-[#141A22] hover:border-slate-500 transition-all group"
+                    className="flex items-center gap-4 p-3 rounded border border-[#D9E4EA] bg-white hover:border-[#4FAFC1] transition-all group shadow-xs"
                   >
-                    <div className="relative h-12 w-12 shrink-0 rounded border border-[#2A3442] bg-[#0B0F14] overflow-hidden select-none">
+                    <div className="relative h-12 w-12 shrink-0 rounded border border-[#D9E4EA] bg-[#F5F8FA] overflow-hidden select-none">
                       {p.cover_image ? (
                         // eslint-disable-next-line @next/next/no-img-element
                         <img 
@@ -746,22 +735,22 @@ export default function PlaybookSlugPage({ params }: PageProps) {
                           className="h-full w-full object-cover"
                         />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
+                        <div className="h-full w-full flex items-center justify-center text-[#60717D]">
                           <BookOpen className="h-8 w-8" />
                         </div>
                       )}
                     </div>
                     
                     <div className="flex-1 min-w-0">
-                      <h4 className="text-xs sm:text-sm font-bold text-white group-hover:text-[#3B82F6] transition-colors truncate">
+                      <h4 className="text-xs sm:text-sm font-bold text-[#17232D] group-hover:text-[#4FAFC1] transition-colors truncate">
                         {p.title}
                       </h4>
-                      <p className="text-[11px] text-[#A8B3C5] truncate mt-0.5">
+                      <p className="text-[11px] text-[#60717D] truncate mt-0.5">
                         {p.description}
                       </p>
                     </div>
 
-                    <ChevronRight className="h-4 w-4 text-[#A8B3C5] group-hover:text-white transition-colors shrink-0" />
+                    <ChevronRight className="h-4 w-4 text-[#60717D] group-hover:text-[#17232D] transition-colors shrink-0" />
                   </Link>
                 ))}
               </div>
@@ -769,10 +758,10 @@ export default function PlaybookSlugPage({ params }: PageProps) {
           )}
 
           {/* Access Policy disclaimer */}
-          <div className="mt-12 p-5 rounded border border-[#2A3442] bg-[#141A22]/40 flex gap-4 text-xs text-[#A8B3C5] leading-relaxed">
-            <Info className="h-5 w-5 text-slate-500 shrink-0 mt-0.5" />
+          <div className="mt-12 p-5 rounded border border-[#D9E4EA] bg-white flex gap-4 text-xs text-[#60717D] leading-relaxed shadow-xs">
+            <Info className="h-5 w-5 text-[#4FAFC1] shrink-0 mt-0.5" />
             <div>
-              <span className="font-bold text-[#F3F4F6] block mb-1">Access Protocol</span>
+              <span className="font-bold text-[#17232D] block mb-1">Access Protocol</span>
               Audio briefings are served securely directly from our edge nodes. Sync preferences, offline playback buffers, and progress timelines require an active SecOps profile session.
             </div>
           </div>

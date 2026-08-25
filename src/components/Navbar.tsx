@@ -69,29 +69,29 @@ export default function Navbar() {
   const isCommunityActive = pathname.startsWith("/community");
 
   const defensiveItems = [
-    { icon: <FileText className="h-4 w-4 text-[#3B82F6]" />, title: "PDF Guides", desc: "Technical guides in PDF format" },
-    { icon: <BookOpen className="h-4 w-4 text-[#3B82F6]" />, title: "Cheat Sheets", desc: "Operational brief sheets" },
-    { icon: <Terminal className="h-4 w-4 text-[#3B82F6]" />, title: "Detection Rules", desc: "Sigma and YARA blueprints" },
-    { icon: <Activity className="h-4 w-4 text-[#3B82F6]" />, title: "Incident Response", desc: "Incident containment guides" },
-    { icon: <Lock className="h-4 w-4 text-[#3B82F6]" />, title: "Hardening Guides", desc: "Secure configuration baselines" },
-    { icon: <Shield className="h-4 w-4 text-[#3B82F6]" />, title: "SOC References", desc: "Security operations playbooks" },
-    { icon: <Eye className="h-4 w-4 text-[#3B82F6]" />, title: "Malware Analysis", desc: "Static and dynamic analysis steps" },
-    { icon: <Zap className="h-4 w-4 text-[#3B82F6]" />, title: "Threat Intelligence", desc: "Threat hunting indices" },
+    { icon: <FileText className="h-4 w-4 text-[#3D8B72]" />, title: "PDF Guides", desc: "Technical guides in PDF format" },
+    { icon: <BookOpen className="h-4 w-4 text-[#3D8B72]" />, title: "Cheat Sheets", desc: "Operational brief sheets" },
+    { icon: <Terminal className="h-4 w-4 text-[#3D8B72]" />, title: "Detection Rules", desc: "Sigma and YARA blueprints" },
+    { icon: <Activity className="h-4 w-4 text-[#3D8B72]" />, title: "Incident Response", desc: "Incident containment guides" },
+    { icon: <Lock className="h-4 w-4 text-[#3D8B72]" />, title: "Hardening Guides", desc: "Secure configuration baselines" },
+    { icon: <Shield className="h-4 w-4 text-[#3D8B72]" />, title: "SOC References", desc: "Security operations playbooks" },
+    { icon: <Eye className="h-4 w-4 text-[#3D8B72]" />, title: "Malware Analysis", desc: "Static and dynamic analysis steps" },
+    { icon: <Zap className="h-4 w-4 text-[#3D8B72]" />, title: "Threat Intelligence", desc: "Threat hunting indices" },
   ];
 
   const offensiveItems = [
-    { icon: <FileText className="h-4 w-4 text-[#EF4444]" />, title: "PDF Guides", desc: "Offensive strategies in PDF format" },
-    { icon: <BookOpen className="h-4 w-4 text-[#EF4444]" />, title: "Cheat Sheets", desc: "Exploitation reference sheets" },
-    { icon: <Terminal className="h-4 w-4 text-[#EF4444]" />, title: "Payload References", desc: "Dynamic payload blueprints" },
-    { icon: <Cpu className="h-4 w-4 text-[#EF4444]" />, title: "Web Exploitation", desc: "OWASP Top 10 exploitation techniques" },
-    { icon: <Key className="h-4 w-4 text-[#EF4444]" />, title: "Active Directory", desc: "Domain escalation walkthroughs" },
-    { icon: <Lock className="h-4 w-4 text-[#EF4444]" />, title: "Privilege Escalation", desc: "System kernel bypass blueprints" },
-    { icon: <Activity className="h-4 w-4 text-[#EF4444]" />, title: "Wireless Security", desc: "WPA and enterprise network tests" },
-    { icon: <Zap className="h-4 w-4 text-[#EF4444]" />, title: "Cloud Pentesting", desc: "AWS and Azure auditing templates" },
+    { icon: <FileText className="h-4 w-4 text-[#C95757]" />, title: "PDF Guides", desc: "Offensive strategies in PDF format" },
+    { icon: <BookOpen className="h-4 w-4 text-[#C95757]" />, title: "Cheat Sheets", desc: "Exploitation reference sheets" },
+    { icon: <Terminal className="h-4 w-4 text-[#C95757]" />, title: "Payload References", desc: "Dynamic payload blueprints" },
+    { icon: <Cpu className="h-4 w-4 text-[#C95757]" />, title: "Web Exploitation", desc: "OWASP Top 10 exploitation techniques" },
+    { icon: <Key className="h-4 w-4 text-[#C95757]" />, title: "Active Directory", desc: "Domain escalation walkthroughs" },
+    { icon: <Lock className="h-4 w-4 text-[#C95757]" />, title: "Privilege Escalation", desc: "System kernel bypass blueprints" },
+    { icon: <Activity className="h-4 w-4 text-[#C95757]" />, title: "Wireless Security", desc: "WPA and enterprise network tests" },
+    { icon: <Zap className="h-4 w-4 text-[#C95757]" />, title: "Cloud Pentesting", desc: "AWS and Azure auditing templates" },
   ];
 
   return (
-    <header className="sticky top-0 z-50 h-[62px] w-full border-b border-[#2A3442] bg-[#141A22] select-none">
+    <header className="sticky top-0 z-50 h-[62px] w-full border-b border-[#D9E4EA] bg-white select-none shadow-xs">
       <div className="mx-auto flex h-full max-w-[1380px] items-center justify-between px-6 lg:px-10">
 
         {/* Logo */}
@@ -106,12 +106,12 @@ export default function Navbar() {
             <Link
               href="/"
               className={`text-sm font-bold transition-colors ${
-                isHomeActive ? "text-[#3B82F6]" : "text-[#A8B3C5] hover:text-white"
+                isHomeActive ? "text-[#173B57]" : "text-[#60717D] hover:text-[#17232D]"
               }`}
             >
               Home
             </Link>
-            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#3B82F6] transition-all ${
+            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#4FAFC1] transition-all ${
               isHomeActive ? "w-full" : "w-0 group-hover:w-full"
             }`} />
           </div>
@@ -121,12 +121,12 @@ export default function Navbar() {
             <Link
               href="/playbooks"
               className={`text-sm font-bold transition-colors ${
-                isPlaybooksActive ? "text-[#3B82F6]" : "text-[#A8B3C5] hover:text-white"
+                isPlaybooksActive ? "text-[#173B57]" : "text-[#60717D] hover:text-[#17232D]"
               }`}
             >
               Audio Playbooks
             </Link>
-            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#3B82F6] transition-all ${
+            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#4FAFC1] transition-all ${
               isPlaybooksActive ? "w-full" : "w-0 group-hover:w-full"
             }`} />
           </div>
@@ -139,16 +139,16 @@ export default function Navbar() {
           >
             <span
               className={`text-sm font-bold cursor-pointer transition-colors ${
-                isLibraryActive ? "text-[#3B82F6]" : "text-[#A8B3C5] hover:text-white"
+                isLibraryActive ? "text-[#173B57]" : "text-[#60717D] hover:text-[#17232D]"
               }`}
             >
               Library
             </span>
-            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#3B82F6] transition-all ${
+            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#4FAFC1] transition-all ${
               isLibraryActive ? "w-full" : "w-0"
             } ${isMegaMenuOpen ? "w-full" : ""}`} />
 
-            {/* Premium Mega Menu Popup (Desktop) */}
+            {/* Mega Menu Popup (Desktop) */}
             <AnimatePresence>
               {isMegaMenuOpen && (
                 <motion.div 
@@ -156,26 +156,26 @@ export default function Navbar() {
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 10, scale: 0.98 }}
                   transition={{ duration: 0.2 }}
-                  className="absolute top-full left-1/2 -translate-x-1/2 mt-[10px] w-[900px] max-w-[90vw] border border-[#2A3442] bg-[#141A22] rounded shadow-2xl p-6 grid grid-cols-2 gap-6 z-50 text-left"
+                  className="absolute top-full left-1/2 -translate-x-1/2 mt-[10px] w-[900px] max-w-[90vw] border border-[#D9E4EA] bg-white rounded shadow-xl p-6 grid grid-cols-2 gap-6 z-50 text-left"
                   style={{ transform: "translateX(-50%)" }}
                 >
                   {/* Arrow Indicator */}
-                  <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#2A3442]" />
-                  <div className="absolute top-[-5px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#141A22]" />
+                  <div className="absolute top-[-6px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-[#D9E4EA]" />
+                  <div className="absolute top-[-5px] left-1/2 -translate-x-1/2 w-0 h-0 border-l-[6px] border-l-transparent border-r-[6px] border-r-transparent border-b-[6px] border-b-white" />
 
                   {/* Left Column: Defensive Security */}
-                  <div className="border-r border-[#2A3442]/60 pr-6">
+                  <div className="border-r border-[#D9E4EA] pr-6">
                     <Link 
                       href="/library/defensive"
-                      className="group/col flex items-center justify-between mb-3 text-sm font-bold text-white hover:text-[#3B82F6] transition-colors"
+                      className="group/col flex items-center justify-between mb-3 text-sm font-bold text-[#17232D] hover:text-[#3D8B72] transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <Shield className="h-4.5 w-4.5 text-[#3B82F6]" />
+                        <Shield className="h-4.5 w-4.5 text-[#3D8B72]" />
                         Defensive Security
                       </span>
-                      <ChevronRight className="h-4 w-4 transition-transform group-hover/col:translate-x-1" />
+                      <ChevronRight className="h-4 w-4 transition-transform group-hover/col:translate-x-1 text-[#60717D]" />
                     </Link>
-                    <p className="text-[11px] text-[#A8B3C5] leading-relaxed mb-4">
+                    <p className="text-[11px] text-[#60717D] leading-relaxed mb-4">
                       Guides, blue team references, incident response documentation and defensive knowledge.
                     </p>
 
@@ -184,14 +184,14 @@ export default function Navbar() {
                         <Link
                           key={idx}
                           href="/library/defensive"
-                          className="flex items-start gap-2 p-1.5 rounded hover:bg-[#0B0F14] group/item transition-colors"
+                          className="flex items-start gap-2 p-1.5 rounded hover:bg-[#F5F8FA] group/item transition-colors"
                         >
                           <div className="mt-0.5 shrink-0">{item.icon}</div>
                           <div className="min-w-0">
-                            <span className="block text-[11px] font-bold text-slate-200 group-hover/item:text-[#3B82F6] transition-colors truncate">
+                            <span className="block text-[11px] font-bold text-[#17232D] group-hover/item:text-[#3D8B72] transition-colors truncate">
                               {item.title}
                             </span>
-                            <span className="block text-[9px] text-[#A8B3C5] truncate leading-tight mt-0.5">
+                            <span className="block text-[9px] text-[#60717D] truncate leading-tight mt-0.5">
                               {item.desc}
                             </span>
                           </div>
@@ -204,15 +204,15 @@ export default function Navbar() {
                   <div className="pl-2">
                     <Link 
                       href="/library/offensive"
-                      className="group/col flex items-center justify-between mb-3 text-sm font-bold text-white hover:text-[#EF4444] transition-colors"
+                      className="group/col flex items-center justify-between mb-3 text-sm font-bold text-[#17232D] hover:text-[#C95757] transition-colors"
                     >
                       <span className="flex items-center gap-2">
-                        <Zap className="h-4.5 w-4.5 text-[#EF4444]" />
+                        <Zap className="h-4.5 w-4.5 text-[#C95757]" />
                         Offensive Security
                       </span>
-                      <ChevronRight className="h-4 w-4 transition-transform group-hover/col:translate-x-1" />
+                      <ChevronRight className="h-4 w-4 transition-transform group-hover/col:translate-x-1 text-[#60717D]" />
                     </Link>
-                    <p className="text-[11px] text-[#A8B3C5] leading-relaxed mb-4">
+                    <p className="text-[11px] text-[#60717D] leading-relaxed mb-4">
                       Red team references, exploitation documentation and penetration testing resources.
                     </p>
 
@@ -221,14 +221,14 @@ export default function Navbar() {
                         <Link
                           key={idx}
                           href="/library/offensive"
-                          className="flex items-start gap-2 p-1.5 rounded hover:bg-[#0B0F14] group/item transition-colors"
+                          className="flex items-start gap-2 p-1.5 rounded hover:bg-[#F5F8FA] group/item transition-colors"
                         >
                           <div className="mt-0.5 shrink-0">{item.icon}</div>
                           <div className="min-w-0">
-                            <span className="block text-[11px] font-bold text-slate-200 group-hover/item:text-[#EF4444] transition-colors truncate">
+                            <span className="block text-[11px] font-bold text-[#17232D] group-hover/item:text-[#C95757] transition-colors truncate">
                               {item.title}
                             </span>
-                            <span className="block text-[9px] text-[#A8B3C5] truncate leading-tight mt-0.5">
+                            <span className="block text-[9px] text-[#60717D] truncate leading-tight mt-0.5">
                               {item.desc}
                             </span>
                           </div>
@@ -246,12 +246,12 @@ export default function Navbar() {
             <Link
               href="/community"
               className={`text-sm font-bold transition-colors ${
-                isCommunityActive ? "text-[#3B82F6]" : "text-[#A8B3C5] hover:text-white"
+                isCommunityActive ? "text-[#173B57]" : "text-[#60717D] hover:text-[#17232D]"
               }`}
             >
               Community
             </Link>
-            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#3B82F6] transition-all ${
+            <span className={`absolute bottom-0 left-0 h-[2px] bg-[#4FAFC1] transition-all ${
               isCommunityActive ? "w-full" : "w-0 group-hover:w-full"
             }`} />
           </div>
@@ -261,7 +261,7 @@ export default function Navbar() {
         <div className="flex items-center gap-3.5">
           {/* Desktop search */}
           <div ref={searchContainerRef} className="relative hidden sm:block">
-            <span className="absolute inset-y-0 left-3 flex items-center text-[#A8B3C5]">
+            <span className="absolute inset-y-0 left-3 flex items-center text-[#60717D]">
               <Search className="h-4 w-4 stroke-[1.8]" />
             </span>
             <input
@@ -276,14 +276,14 @@ export default function Navbar() {
               }}
               onFocus={() => setIsFocused(true)}
               placeholder="Search briefings & docs…"
-              className="h-9 w-56 rounded border border-[#2A3442] bg-[#0B0F14] pl-9 pr-8 text-xs text-white transition-all placeholder:text-[#A8B3C5] focus:w-68 focus:border-[#3B82F6] focus:outline-none"
+              className="h-9 w-56 rounded border border-[#D9E4EA] bg-[#F5F8FA] pl-9 pr-8 text-xs text-[#17232D] transition-all placeholder:text-[#60717D] focus:w-68 focus:border-[#4FAFC1] focus:bg-white focus:outline-none"
               style={{ paddingLeft: "2.25rem" }}
               aria-label="Search briefings and documentation"
             />
             {searchQuery && (
               <button
                 onClick={() => { setSearchQuery(""); setSearchResults([]); }}
-                className="absolute inset-y-0 right-2.5 flex items-center text-[#A8B3C5] hover:text-white"
+                className="absolute inset-y-0 right-2.5 flex items-center text-[#60717D] hover:text-[#17232D]"
                 aria-label="Clear search"
               >
                 <X className="h-4 w-4" />
@@ -291,7 +291,7 @@ export default function Navbar() {
             )}
 
             {isFocused && searchQuery.trim() && (
-              <div className="absolute right-0 mt-1.5 w-80 rounded border border-[#2A3442] bg-[#141A22] p-2 shadow-lg max-h-72 overflow-y-auto z-50">
+              <div className="absolute right-0 mt-1.5 w-80 rounded border border-[#D9E4EA] bg-white p-2 shadow-lg max-h-72 overflow-y-auto z-50">
                 {searchResults.length > 0 ? (
                   <div className="space-y-0.5">
                     {searchResults.map((p) => (
@@ -299,15 +299,15 @@ export default function Navbar() {
                         key={p.id}
                         href={`/playbooks/${p.slug}`}
                         onClick={() => { setIsFocused(false); setSearchQuery(""); }}
-                        className="block px-3 py-2 rounded hover:bg-[#2A3442] transition-colors"
+                        className="block px-3 py-2 rounded hover:bg-[#F5F8FA] transition-colors"
                       >
-                        <h4 className="text-xs font-bold text-white truncate">{p.title}</h4>
-                        <p className="text-[10px] text-[#A8B3C5] truncate mt-0.5">{p.description}</p>
+                        <h4 className="text-xs font-bold text-[#17232D] truncate">{p.title}</h4>
+                        <p className="text-[10px] text-[#60717D] truncate mt-0.5">{p.description}</p>
                       </Link>
                     ))}
                   </div>
                 ) : (
-                  <div className="p-3 text-center text-xs text-[#A8B3C5]">No matching briefs found.</div>
+                  <div className="p-3 text-center text-xs text-[#60717D]">No matching briefs found.</div>
                 )}
               </div>
             )}
@@ -318,7 +318,7 @@ export default function Navbar() {
             <div ref={profileContainerRef} className="relative">
               <button 
                 onClick={() => setIsProfileMenuOpen(prev => !prev)}
-                className="flex items-center gap-2 h-9 px-2 rounded border border-[#2A3442] bg-[#0B0F14] hover:bg-[#141A22] transition-colors cursor-pointer select-none"
+                className="flex items-center gap-2 h-9 px-2.5 rounded border border-[#D9E4EA] bg-[#F5F8FA] hover:bg-white transition-colors cursor-pointer select-none"
               >
                 {user?.user_metadata?.avatar_url ? (
                   // eslint-disable-next-line @next/next/no-img-element
@@ -328,9 +328,9 @@ export default function Navbar() {
                     className="h-5 w-5 rounded-full object-cover shrink-0"
                   />
                 ) : (
-                  <User className="h-4 w-4 text-[#3B82F6] shrink-0" />
+                  <User className="h-4 w-4 text-[#4FAFC1] shrink-0" />
                 )}
-                <span className="hidden sm:inline text-xs font-bold text-white max-w-[100px] truncate">
+                <span className="hidden sm:inline text-xs font-bold text-[#17232D] max-w-[100px] truncate">
                   {user?.user_metadata?.full_name || user?.email || "Profile"}
                 </span>
               </button>
@@ -342,14 +342,14 @@ export default function Navbar() {
                     animate={{ opacity: 1, scale: 1, y: 0 }}
                     exit={{ opacity: 0, scale: 0.95, y: -5 }}
                     transition={{ duration: 0.15 }}
-                    className="absolute right-0 mt-1.5 w-32 origin-top-right rounded border border-[#2A3442] bg-[#141A22] p-1 shadow-lg z-50 text-left"
+                    className="absolute right-0 mt-1.5 w-32 origin-top-right rounded border border-[#D9E4EA] bg-white p-1 shadow-lg z-50 text-left"
                   >
                     <button
                       onClick={() => {
                         setIsLogoutModalOpen(true);
                         setIsProfileMenuOpen(false);
                       }}
-                      className="w-full text-left px-2.5 py-1.5 rounded hover:bg-[#2A3442] text-xs font-bold text-[#EF4444] transition-colors cursor-pointer"
+                      className="w-full text-left px-2.5 py-1.5 rounded hover:bg-[#FBF0F0] text-xs font-bold text-[#C95757] transition-colors cursor-pointer"
                     >
                       Sign Out
                     </button>
@@ -365,7 +365,7 @@ export default function Navbar() {
           ) : (
             <button
               onClick={loginWithGoogle}
-              className="flex h-9 items-center gap-2 px-3 rounded border border-[#2A3442] bg-[#0B0F14] text-slate-350 hover:bg-[#141A22] hover:text-white transition-colors text-xs font-bold select-none cursor-pointer"
+              className="flex h-9 items-center gap-2 px-3.5 rounded bg-[#173B57] text-white hover:bg-[#245A7A] transition-colors text-xs font-bold select-none cursor-pointer shadow-xs"
             >
               <svg viewBox="0 0 24 24" className="h-3.5 w-3.5 fill-current shrink-0" aria-hidden="true">
                 <path d="M12.24 10.285V14.4h6.887c-.648 2.41-2.519 4.114-5.136 4.114-3.555 0-6.437-2.883-6.437-6.438a6.445 6.445 0 016.437-6.437c1.558 0 2.978.557 4.095 1.486L21.2 4.135C19.268 2.502 16.742 1.5 12.24 1.5c-5.79 0-10.5 4.71-10.5 10.5s4.71 10.5 10.5 10.5c5.385 0 10.07-3.793 10.07-10.5 0-.66-.06-1.285-.2-1.715H12.24z"/>
@@ -377,7 +377,7 @@ export default function Navbar() {
           {/* Mobile hamburger menu toggle */}
           <button
             onClick={() => setIsMobileMenuOpen((prev) => !prev)}
-            className="flex md:hidden h-9 w-9 items-center justify-center rounded border border-[#2A3442] bg-[#0B0F14] text-slate-350 hover:bg-[#141A22] hover:text-white transition-colors"
+            className="flex md:hidden h-9 w-9 items-center justify-center rounded border border-[#D9E4EA] bg-white text-[#17232D] hover:bg-[#F5F8FA] transition-colors"
             aria-label="Toggle Navigation Menu"
           >
             <Menu className="h-4.5 w-4.5" />
@@ -393,34 +393,34 @@ export default function Navbar() {
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="md:hidden border-b border-[#2A3442] bg-[#141A22] px-6 py-4 space-y-3 flex flex-col z-40 relative"
+            className="md:hidden border-b border-[#D9E4EA] bg-white px-6 py-4 space-y-3 flex flex-col z-40 relative shadow-sm"
           >
-            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-[#A8B3C5] hover:text-white py-1">Home</Link>
-            <Link href="/playbooks" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-[#A8B3C5] hover:text-white py-1">Audio Playbooks</Link>
+            <Link href="/" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-[#60717D] hover:text-[#17232D] py-1">Home</Link>
+            <Link href="/playbooks" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-[#60717D] hover:text-[#17232D] py-1">Audio Playbooks</Link>
             
             {/* Library mobile accordion */}
             <div>
               <button 
                 onClick={() => setIsMobileLibraryOpen((prev) => !prev)}
-                className="w-full flex items-center justify-between text-xs font-bold text-[#A8B3C5] hover:text-white py-1 text-left"
+                className="w-full flex items-center justify-between text-xs font-bold text-[#60717D] hover:text-[#17232D] py-1 text-left"
               >
                 <span>Library</span>
                 <ChevronRight className={`h-3 w-3 transition-transform ${isMobileLibraryOpen ? "rotate-90" : ""}`} />
               </button>
 
               {isMobileLibraryOpen && (
-                <div className="mt-2 pl-4 border-l border-[#2A3442] space-y-2 flex flex-col">
-                  <Link href="/library/defensive" onClick={() => setIsMobileMenuOpen(false)} className="text-[11px] text-[#3B82F6] font-bold py-1">
+                <div className="mt-2 pl-4 border-l border-[#D9E4EA] space-y-2 flex flex-col">
+                  <Link href="/library/defensive" onClick={() => setIsMobileMenuOpen(false)} className="text-[11px] text-[#3D8B72] font-bold py-1">
                     🛡 Defensive Security
                   </Link>
-                  <Link href="/library/offensive" onClick={() => setIsMobileMenuOpen(false)} className="text-[11px] text-[#EF4444] font-bold py-1">
+                  <Link href="/library/offensive" onClick={() => setIsMobileMenuOpen(false)} className="text-[11px] text-[#C95757] font-bold py-1">
                     ⚔ Offensive Security
                   </Link>
                 </div>
               )}
             </div>
 
-            <Link href="/community" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-[#A8B3C5] hover:text-white py-1">Community</Link>
+            <Link href="/community" onClick={() => setIsMobileMenuOpen(false)} className="text-xs font-bold text-[#60717D] hover:text-[#17232D] py-1">Community</Link>
           </motion.div>
         )}
       </AnimatePresence>

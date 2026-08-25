@@ -14,9 +14,9 @@ import {
 import { useAuth } from "@/hooks/useAuth";
 
 const DIFFICULTY_STYLES = {
-  "Beginner": "bg-[#10B981]/10 text-[#10B981] border border-[#10B981]/20",
-  "Intermediate": "bg-[#F59E0B]/10 text-[#F59E0B] border border-[#F59E0B]/20",
-  "Advanced": "bg-[#EF4444]/10 text-[#EF4444] border border-[#EF4444]/20"
+  "Beginner": "bg-[#E8F4F0] text-[#3D8B72] border border-[#C4E4D9]",
+  "Intermediate": "bg-[#FDF6E7] text-[#C28A32] border border-[#F7E8C8]",
+  "Advanced": "bg-[#FBF0F0] text-[#C95757] border border-[#F5D3D3]"
 };
 
 export default function PlaybooksLibrary() {
@@ -60,12 +60,12 @@ export default function PlaybooksLibrary() {
     <>
       <Navbar />
 
-      <main className="min-h-screen bg-[#0B0F14] text-[#F3F4F6] py-12 relative overflow-hidden select-text">
+      <main className="min-h-screen bg-[#F5F8FA] text-[#17232D] py-12 relative overflow-hidden select-text">
         {/* Subtle grid background */}
         <div className="pointer-events-none absolute inset-0 z-0"
           style={{
-            opacity: 0.015,
-            backgroundImage: "linear-gradient(#2A3442 1px, transparent 1px), linear-gradient(90deg, #2A3442 1px, transparent 1px)",
+            opacity: 0.4,
+            backgroundImage: "linear-gradient(#D9E4EA 1px, transparent 1px), linear-gradient(90deg, #D9E4EA 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }} />
 
@@ -74,20 +74,20 @@ export default function PlaybooksLibrary() {
           {/* Header Panel */}
           <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
             <div className="max-w-2xl">
-              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#3B82F6] block mb-1">
+              <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[#173B57] block mb-1">
                 SecOps Audio Playbooks
               </span>
-              <h1 className="text-2xl font-extrabold text-white tracking-tight leading-tight">
+              <h1 className="text-2xl font-extrabold text-[#17232D] tracking-tight leading-tight">
                 Professional Security Audio Briefings
               </h1>
-              <p className="mt-1 text-xs sm:text-sm text-[#A8B3C5] leading-relaxed">
+              <p className="mt-1 text-xs sm:text-sm text-[#60717D] leading-relaxed">
                 Expert-reviewed cybersecurity audio briefings for learning anywhere.
               </p>
             </div>
 
             {/* Search bar */}
             <div className="relative w-full md:w-80 shrink-0">
-              <span className="absolute inset-y-0 left-3 flex items-center text-[#A8B3C5]">
+              <span className="absolute inset-y-0 left-3 flex items-center text-[#60717D]">
                 <Search className="h-4 w-4" />
               </span>
               <input
@@ -95,13 +95,13 @@ export default function PlaybooksLibrary() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search briefings..."
-                className="w-full h-9 pl-9.5 pr-8 rounded border border-[#2A3442] bg-[#141A22] text-xs text-white placeholder:text-[#A8B3C5] focus:border-[#3B82F6] focus:outline-none transition-colors"
+                className="w-full h-9 pl-9.5 pr-8 rounded border border-[#D9E4EA] bg-white text-xs text-[#17232D] placeholder:text-[#60717D] focus:border-[#4FAFC1] focus:outline-none transition-colors"
                 style={{ paddingLeft: "2.3rem" }}
               />
               {searchQuery && (
                 <button
                   onClick={() => setSearchQuery("")}
-                  className="absolute inset-y-0 right-3 flex items-center text-slate-500 hover:text-white"
+                  className="absolute inset-y-0 right-3 flex items-center text-[#60717D] hover:text-[#17232D]"
                   aria-label="Clear filter"
                 >
                   <X className="h-4 w-4" />
@@ -111,7 +111,7 @@ export default function PlaybooksLibrary() {
           </div>
 
           {errorMsg && (
-            <div className="mb-6 text-xs font-semibold text-[#EF4444] bg-[#EF4444]/10 border border-[#EF4444]/20 p-4 rounded">
+            <div className="mb-6 text-xs font-semibold text-[#C95757] bg-[#FBF0F0] border border-[#F5D3D3] p-4 rounded">
               {errorMsg}
             </div>
           )}
@@ -119,13 +119,13 @@ export default function PlaybooksLibrary() {
           {/* Grid display: Max 3 cards per row on desktop. Tighter spacing. */}
           {loading ? (
             <div className="text-center py-20">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#3B82F6] mx-auto mb-4" />
-              <p className="text-xs text-[#A8B3C5]">Querying briefings registry...</p>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#4FAFC1] mx-auto mb-4" />
+              <p className="text-xs text-[#60717D]">Querying briefings registry...</p>
             </div>
           ) : playbooksList.length > 0 ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {playbooksList.map((p) => {
-                const difficultyStyle = DIFFICULTY_STYLES[p.difficulty] || "bg-[#141A22] text-[#A8B3C5] border border-[#2A3442]";
+                const difficultyStyle = DIFFICULTY_STYLES[p.difficulty] || "bg-[#F5F8FA] text-[#60717D] border border-[#D9E4EA]";
                 const displayDate = p.updated_date
                   ? new Date(p.updated_date).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })
                   : "Recently Updated";
@@ -134,10 +134,10 @@ export default function PlaybooksLibrary() {
                 return (
                   <div
                     key={p.id}
-                    className="group flex flex-col rounded-xl border border-[#2A3442] bg-[#141A22]/90 backdrop-blur-sm hover:border-[#3B82F6]/50 hover:shadow-[0_4px_20px_rgba(59,130,246,0.12)] hover:-translate-y-0.5 transition-all duration-200 overflow-hidden"
+                    className="group flex flex-col rounded-xl border border-[#D9E4EA] bg-white hover:border-[#4FAFC1] transition-all duration-200 overflow-hidden shadow-xs"
                   >
                     {/* Fixed 16:9 Aspect Ratio Header Image Container */}
-                    <div className="relative aspect-video w-full bg-[#0B0F14] overflow-hidden border-b border-[#2A3442]/60 select-none rounded-t-xl flex items-center justify-center">
+                    <div className="relative aspect-video w-full bg-[#F5F8FA] overflow-hidden border-b border-[#D9E4EA] select-none rounded-t-xl flex items-center justify-center">
                       {p.cover_image ? (
                         <Image
                           src={p.cover_image}
@@ -148,11 +148,10 @@ export default function PlaybooksLibrary() {
                           unoptimized
                         />
                       ) : (
-                        <div className="h-full w-full flex items-center justify-center text-[#A8B3C5]">
+                        <div className="h-full w-full flex items-center justify-center text-[#60717D]">
                           <Volume2 className="h-7 w-7 opacity-70" />
                         </div>
                       )}
-                      <div className="absolute inset-0 bg-gradient-to-t from-[#141A22] via-transparent to-black/30 pointer-events-none z-10" />
                       
                       {/* Difficulty Badge */}
                       <span className={`absolute top-2.5 left-2.5 z-20 px-2 py-0.5 rounded-full text-[8px] font-bold uppercase tracking-wider ${difficultyStyle}`}>
@@ -160,8 +159,8 @@ export default function PlaybooksLibrary() {
                       </span>
 
                       {/* Duration Chip */}
-                      <span className="absolute top-2.5 right-2.5 z-20 bg-[#0B0F14]/80 text-[#3B82F6] backdrop-blur-md px-2 py-0.5 rounded-full text-[9px] font-mono font-medium border border-[#2A3442]/60 flex items-center gap-1">
-                        <Volume2 className="h-2.5 w-2.5" />
+                      <span className="absolute top-2.5 right-2.5 z-20 bg-white/90 text-[#173B57] backdrop-blur-md px-2 py-0.5 rounded-full text-[9px] font-mono font-medium border border-[#D9E4EA] flex items-center gap-1">
+                        <Volume2 className="h-2.5 w-2.5 text-[#4FAFC1]" />
                         {p.duration}
                       </span>
                     </div>
@@ -170,38 +169,38 @@ export default function PlaybooksLibrary() {
                     <div className="p-3.5 flex-1 flex flex-col justify-between">
                       <div>
                         {/* Title */}
-                        <h3 className="text-xs sm:text-sm font-bold text-white tracking-tight leading-snug mb-1 group-hover:text-[#3B82F6] transition-colors line-clamp-1">
+                        <h3 className="text-xs sm:text-sm font-bold text-[#17232D] tracking-tight leading-snug mb-1 group-hover:text-[#4FAFC1] transition-colors line-clamp-1">
                           {p.title}
                         </h3>
 
                         {/* Author & Date Metadata */}
-                        <div className="flex items-center gap-2 mb-2 text-[9px] text-[#A8B3C5]/80 select-none">
+                        <div className="flex items-center gap-2 mb-2 text-[9px] text-[#60717D] select-none">
                           <span className="flex items-center gap-1 truncate max-w-[120px]">
-                            <Users className="h-2.5 w-2.5 text-slate-500 shrink-0" />
+                            <Users className="h-2.5 w-2.5 text-[#8193A0] shrink-0" />
                             {p.author}
                           </span>
                           <span>•</span>
                           <span className="flex items-center gap-1 font-mono">
-                            <Calendar className="h-2.5 w-2.5 text-slate-500 shrink-0" />
+                            <Calendar className="h-2.5 w-2.5 text-[#8193A0] shrink-0" />
                             {displayDate}
                           </span>
                         </div>
 
                         {/* Description */}
-                        <p className="text-[11px] text-[#A8B3C5]/90 leading-relaxed mb-3 line-clamp-2">
+                        <p className="text-[11px] text-[#60717D] leading-relaxed mb-3 line-clamp-2">
                           {p.description}
                         </p>
                       </div>
 
                       {/* Action Footer */}
-                      <div className="flex items-center gap-2 pt-2.5 border-t border-[#2A3442]/40">
+                      <div className="flex items-center gap-2 pt-2.5 border-t border-[#D9E4EA]">
                         <Link
                           href={`/playbooks/${p.slug}`}
                           onMouseEnter={() => {
                             playbookService.getPlaybookBySlug(p.slug);
                             if (p.audio_url) preloadAudioTrack(p.audio_url, "metadata");
                           }}
-                          className="flex-1 h-7.5 rounded-lg bg-[#3B82F6] hover:bg-blue-600 active:scale-[0.98] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none shadow-sm shadow-blue-500/20"
+                          className="flex-1 h-7.5 rounded-lg bg-[#173B57] hover:bg-[#245A7A] text-white font-bold text-xs flex items-center justify-center gap-1.5 transition-all select-none shadow-xs"
                         >
                           <Play className="h-3 w-3 fill-white" />
                           Listen
@@ -211,8 +210,8 @@ export default function PlaybooksLibrary() {
                           onClick={(e) => handleBookmarkToggle(p.id, e)}
                           className={`h-7.5 w-7.5 rounded-lg border flex items-center justify-center transition-all select-none ${
                             isBookmarked 
-                              ? "bg-[#3B82F6]/15 border-[#3B82F6] text-[#3B82F6]"
-                              : "bg-[#0B0F14] border-[#2A3442] text-[#A8B3C5] hover:text-white hover:border-slate-500"
+                              ? "bg-[#E6F4F7] border-[#4FAFC1] text-[#2F6F95]"
+                              : "bg-white border-[#D9E4EA] text-[#60717D] hover:text-[#17232D]"
                           }`}
                           title="Bookmark briefing"
                         >
@@ -226,10 +225,10 @@ export default function PlaybooksLibrary() {
             </div>
           ) : (
             !errorMsg && (
-              <div className="text-center py-16 border border-dashed border-[#2A3442] rounded bg-[#141A22]/40 select-none">
-                <Volume2 className="h-8 w-8 text-slate-600 mx-auto mb-3" />
-                <h3 className="text-sm font-bold text-white mb-0.5">No resources have been published yet.</h3>
-                <p className="text-xs text-slate-500 max-w-sm mx-auto">
+              <div className="text-center py-16 border border-dashed border-[#D9E4EA] rounded bg-white select-none">
+                <Volume2 className="h-8 w-8 text-[#8193A0] mx-auto mb-3" />
+                <h3 className="text-sm font-bold text-[#17232D] mb-0.5">No resources have been published yet.</h3>
+                <p className="text-xs text-[#60717D] max-w-sm mx-auto">
                   Audio playbooks list is currently empty.
                 </p>
               </div>
