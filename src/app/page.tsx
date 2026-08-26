@@ -46,7 +46,7 @@ export default function Home() {
 
             <div className="mt-8 flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/playbooks"
-                className="group flex h-10 w-full sm:w-auto items-center justify-center gap-2 rounded bg-[#173B57] px-6 text-xs font-bold text-white transition-all hover:bg-[#245A7A] select-none shadow-xs">
+                className="group flex h-10 w-full sm:w-auto items-center justify-center gap-2 px-6 text-xs font-bold playsec-cta-btn select-none">
                 Explore Playbook Library
                 <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-1" />
               </Link>
@@ -82,7 +82,7 @@ export default function Home() {
               </p>
               <Link
                 href="/community"
-                className="h-9 px-5 bg-[#173B57] rounded font-bold text-white text-xs hover:bg-[#245A7A] inline-flex items-center gap-1.5 transition-colors select-none shadow-xs"
+                className="h-9 px-5 playsec-cta-btn font-bold text-xs inline-flex items-center gap-1.5 select-none"
               >
                 Go to Community Hub
                 <ChevronRight className="h-4 w-4" />

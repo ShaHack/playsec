@@ -18,28 +18,28 @@ export default function Footer() {
           </div>
 
           {/* Center Links */}
-          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-[#60717D]">
+          <div className="flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm">
             <Link 
               href="/about"
-              className="hover:text-[#17232D] cursor-pointer hover:underline transition-colors"
+              className="footer-link text-[#B8BCBF] hover:text-[#E1E3E5] cursor-pointer transition-colors duration-160"
             >
               About
             </Link>
             <Link 
               href="/docs"
-              className="hover:text-[#17232D] cursor-pointer hover:underline transition-colors"
+              className="footer-link text-[#B8BCBF] hover:text-[#E1E3E5] cursor-pointer transition-colors duration-160"
             >
               Documentation
             </Link>
             <Link 
               href="/privacy"
-              className="hover:text-[#17232D] cursor-pointer hover:underline transition-colors"
+              className="footer-link text-[#B8BCBF] hover:text-[#E1E3E5] cursor-pointer transition-colors duration-160"
             >
               Privacy
             </Link>
             <Link 
               href="/contact"
-              className="hover:text-[#17232D] cursor-pointer hover:underline transition-colors"
+              className="footer-link text-[#B8BCBF] hover:text-[#E1E3E5] cursor-pointer transition-colors duration-160"
             >
               Contact
             </Link>
