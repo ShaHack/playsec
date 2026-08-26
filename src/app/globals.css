@@ -1,38 +1,43 @@
 @import "tailwindcss";
 
 :root {
-  /* Default Theme: Dark Cybersecurity Theme */
-  --color-bg-canvas: #0B1117;
-  --color-surface-card: #111A23;
-  --color-surface-hover: #16212B;
-  --color-main-text: #F1F5F9;
-  --color-secondary-text: #A7B1BC;
-  --color-border-color: rgba(148, 163, 184, 0.20);
+  /* Strict Neutral Charcoal Visual System */
+  --color-bg-canvas: #0B0B0B;
+  --color-surface-card: #111111;
+  --color-surface-hover: #151515;
+  --color-main-text: #F2F2F2;
+  --color-secondary-text: #A3A3A3;
+  --color-muted-text: #737373;
+  --color-border-color: #292929;
+  --color-border-hover: #3A3A3A;
 
-  --color-primary-navy: #38BDF8;
-  --color-primary-blue: #22A8E0;
-  --color-accent-cyan: #38BDF8;
+  /* Primary Button / CTA: Solid Off-White with Charcoal Text */
+  --color-primary-navy: #F2F2F2;
+  --color-primary-blue: #E2E2E2;
+  --color-accent-cyan: #F2F2F2;
 
-  --color-success-green: #38BDF8;
-  --color-warning-amber: #F59E0B;
-  --color-danger-red: #F87171;
+  --color-success-green: #34D399; /* Minimal functional status green */
+  --color-warning-amber: #F59E0B; /* Minimal functional status amber */
+  --color-danger-red: #F87171;    /* Minimal functional status red */
 
-  --color-soft-accent: rgba(56, 189, 248, 0.10);
-  --color-btn-text: #0B1117;
+  --color-soft-accent: #151515;
+  --color-btn-text: #0B0B0B;
 
-  --background: #0B1117;
-  --foreground: #F1F5F9;
+  --background: #0B0B0B;
+  --foreground: #F2F2F2;
 }
 
 :root[data-theme="light"],
 .light {
-  /* Light Theme Overrides */
+  /* Light Theme Fallback */
   --color-bg-canvas: #F5F8FA;
   --color-surface-card: #FFFFFF;
   --color-surface-hover: #F5F8FA;
   --color-main-text: #17232D;
   --color-secondary-text: #60717D;
+  --color-muted-text: #8193A0;
   --color-border-color: #D9E4EA;
+  --color-border-hover: #BCCCD6;
 
   --color-primary-navy: #173B57;
   --color-primary-blue: #245A7A;
@@ -65,11 +70,11 @@
   --color-warning-amber: var(--color-warning-amber);
   --color-danger-red: var(--color-danger-red);
 
-  --radius-card: 8px;
-  --radius-btn: 6px;
+  --radius-card: 6px;
+  --radius-btn: 4px;
 
-  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
-  --shadow-subtle-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  --shadow-subtle: none;
+  --shadow-subtle-hover: none;
 }
 
 body {
@@ -94,10 +99,10 @@ body {
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: var(--color-accent-cyan);
+  background: var(--color-border-hover);
 }
 
-/* Background grid & pattern */
+/* Neutral subtle grid & pattern */
 .cyber-grid {
   background-size: 40px 40px;
   background-image: 
@@ -108,10 +113,10 @@ body {
 .blueprint-pattern {
   background-size: 80px 80px;
   background-image: 
-    radial-gradient(circle, var(--color-soft-accent) 1.5px, transparent 1.5px);
+    radial-gradient(circle, var(--color-border-color) 1.5px, transparent 1.5px);
 }
 
-/* Default Dark Theme Overrides for legacy hardcoded utility classes */
+/* Default Charcoal Dark Theme Overrides for hardcoded utility classes */
 :root:not([data-theme="light"]) {
   /* Canvas Backgrounds */
   .bg-\[\#F5F8FA\],
@@ -144,62 +149,80 @@ body {
     border-color: var(--color-border-color) !important;
   }
 
+  .hover\:border-\[\#4FAFC1\]:hover,
+  .hover\:border-\[\#3D8B72\]:hover,
+  .hover\:border-\[\#C95757\]:hover {
+    border-color: var(--color-border-hover) !important;
+  }
+
   /* Primary CTAs & Navy Accent */
   .bg-\[\#173B57\],
   .playsec-btn-primary {
     background-color: var(--color-primary-navy) !important;
-    color: #0B1117 !important;
+    color: #0B0B0B !important;
+    border: 1px solid #F2F2F2 !important;
   }
 
   .hover\:bg-\[\#245A7A\]:hover,
   .playsec-btn-primary:hover {
     background-color: var(--color-primary-blue) !important;
-    color: #0B1117 !important;
+    color: #0B0B0B !important;
   }
 
-  .text-\[\#173B57\],
+  .text-\[\#173B57\] {
+    color: var(--color-main-text) !important;
+  }
+
   .text-\[\#4FAFC1\] {
-    color: var(--color-accent-cyan) !important;
+    color: var(--color-secondary-text) !important;
   }
 
   .border-\[\#4FAFC1\] {
-    border-color: var(--color-accent-cyan) !important;
+    border-color: var(--color-border-hover) !important;
+  }
+
+  .bg-\[\#4FAFC1\] {
+    background-color: #F2F2F2 !important;
   }
 
   /* Soft Badge Background */
-  .bg-\[\#E9F1F5\] {
-    background-color: var(--color-soft-accent) !important;
+  .bg-\[\#E9F1F5\],
+  .bg-\[\#E6F4F7\] {
+    background-color: var(--color-surface-hover) !important;
+    border-color: var(--color-border-color) !important;
+    color: var(--color-main-text) !important;
   }
 
-  /* Defensive Security Accent (Cyan/Blue) */
+  /* Defensive Security Accent (Functional Neutral / Subtle Green) */
   .text-\[\#3D8B72\] {
-    color: var(--color-success-green) !important;
+    color: #34D399 !important;
   }
 
   .bg-\[\#E8F4F0\] {
-    background-color: rgba(56, 189, 248, 0.10) !important;
+    background-color: rgba(52, 211, 153, 0.08) !important;
   }
 
   .border-\[\#C4E4D9\] {
-    border-color: rgba(56, 189, 248, 0.25) !important;
+    border-color: rgba(52, 211, 153, 0.20) !important;
   }
 
-  /* Offensive Security Accent (Red/Coral) */
+  /* Offensive Security Accent (Functional Red) */
   .text-\[\#C95757\] {
-    color: var(--color-danger-red) !important;
+    color: #F87171 !important;
   }
 
   .bg-\[\#FBF0F0\] {
-    background-color: rgba(248, 113, 113, 0.10) !important;
+    background-color: rgba(248, 113, 113, 0.08) !important;
   }
 
   .border-\[\#F5D3D3\] {
-    border-color: rgba(248, 113, 113, 0.25) !important;
+    border-color: rgba(248, 113, 113, 0.20) !important;
   }
 
   /* Hover and Focus States */
   .hover\:bg-\[\#F5F8FA\]:hover,
-  .hover\:bg-white:hover {
+  .hover\:bg-white:hover,
+  .hover\:bg-\[\#EBF2F6\]:hover {
     background-color: var(--color-surface-hover) !important;
   }
 
@@ -207,26 +230,36 @@ body {
     background-color: var(--color-surface-hover) !important;
   }
 
-  .focus\:border-\[\#4FAFC1\]:focus {
-    border-color: var(--color-accent-cyan) !important;
+  .focus\:border-\[\#4FAFC1\]:focus,
+  .focus\:border-\[\#3D8B72\]:focus,
+  .focus\:border-\[\#C95757\]:focus {
+    border-color: var(--color-border-hover) !important;
   }
 
   /* Specific SVG fills inside primary buttons */
   .bg-\[\#173B57\] svg {
-    color: #0B1117 !important;
+    color: #0B0B0B !important;
+    fill: currentColor !important;
   }
 
   /* Inputs */
-  .playsec-input {
+  .playsec-input,
+  input[type="text"],
+  input[type="email"],
+  select,
+  textarea {
     background-color: var(--color-surface-card);
     border-color: var(--color-border-color);
     color: var(--color-main-text);
   }
 
-  .playsec-input:focus {
-    border-color: var(--color-accent-cyan);
+  .playsec-input:focus,
+  input[type="text"]:focus,
+  input[type="email"]:focus,
+  select:focus,
+  textarea:focus {
+    border-color: var(--color-border-hover);
     background-color: var(--color-surface-hover);
-    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
   }
 
   /* Secondary Buttons */
@@ -238,7 +271,7 @@ body {
 
   .playsec-btn-secondary:hover {
     background-color: var(--color-surface-hover);
-    border-color: var(--color-accent-cyan);
+    border-color: var(--color-border-hover);
   }
 }
 
@@ -246,13 +279,13 @@ body {
 .playsec-card {
   background-color: var(--color-surface-card);
   border: 1px solid var(--color-border-color);
-  border-radius: 8px;
-  box-shadow: var(--shadow-subtle);
-  transition: all 0.2s ease-in-out;
+  border-radius: 6px;
+  box-shadow: none;
+  transition: border-color 0.15s ease-in-out;
 }
 
 .playsec-card:hover {
-  border-color: var(--color-accent-cyan);
-  box-shadow: var(--shadow-subtle-hover);
+  border-color: var(--color-border-hover);
+  box-shadow: none;
 }
 
