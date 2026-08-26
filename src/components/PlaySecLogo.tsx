@@ -69,20 +69,20 @@ export default function PlaySecLogo({
       >
         <defs>
           <linearGradient id="ps-wave-gradient" x1="0" y1="0" x2="88" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="#173B57" />
-            <stop offset="50%" stopColor="#245A7A" />
-            <stop offset="100%" stopColor="#4FAFC1" />
+            <stop offset="0%" stopColor="var(--color-primary-navy, #173B57)" />
+            <stop offset="50%" stopColor="var(--color-primary-blue, #245A7A)" />
+            <stop offset="100%" stopColor="var(--color-accent-cyan, #4FAFC1)" />
           </linearGradient>
         </defs>
 
         <g>
-          <line x1="4" y1="18" x2="84" y2="18" stroke="#4FAFC1" strokeWidth="0.8" strokeOpacity="0.25" strokeDasharray="2 2" />
+          <line x1="4" y1="18" x2="84" y2="18" stroke="var(--color-accent-cyan, #4FAFC1)" strokeWidth="0.8" strokeOpacity="0.25" strokeDasharray="2 2" />
 
-          <line x1="6" y1="18" x2="16" y2="18" stroke="#173B57" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
-          <circle cx="6" cy="18" r="2.2" fill="#173B57" />
+          <line x1="6" y1="18" x2="16" y2="18" stroke="var(--color-primary-navy, #173B57)" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
+          <circle cx="6" cy="18" r="2.2" fill="var(--color-primary-navy, #173B57)" />
 
-          <line x1="71" y1="18" x2="81" y2="18" stroke="#4FAFC1" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
-          <circle cx="81" cy="18" r="2.2" fill="#4FAFC1" />
+          <line x1="71" y1="18" x2="81" y2="18" stroke="var(--color-accent-cyan, #4FAFC1)" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
+          <circle cx="81" cy="18" r="2.2" fill="var(--color-accent-cyan, #4FAFC1)" />
 
           {barPositions.map((xPos, i) => (
             <motion.rect

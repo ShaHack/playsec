@@ -263,7 +263,7 @@ export default function CommunityPage() {
         <div className="pointer-events-none fixed inset-0 z-0"
           style={{
             opacity: 0.4,
-            backgroundImage: "linear-gradient(#D9E4EA 1px, transparent 1px), linear-gradient(90deg, #D9E4EA 1px, transparent 1px)",
+            backgroundImage: "linear-gradient(var(--color-border-color, #D9E4EA) 1px, transparent 1px), linear-gradient(90deg, var(--color-border-color, #D9E4EA) 1px, transparent 1px)",
             backgroundSize: "56px 56px",
           }} />
 

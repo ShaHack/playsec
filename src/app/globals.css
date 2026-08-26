@@ -1,39 +1,80 @@
 @import "tailwindcss";
 
-@theme {
-  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
-  
-  /* Calm, Professional Cybersecurity Palette */
+:root {
+  /* Default Theme: Dark Cybersecurity Theme */
+  --color-bg-canvas: #0B1117;
+  --color-surface-card: #111A23;
+  --color-surface-hover: #16212B;
+  --color-main-text: #F1F5F9;
+  --color-secondary-text: #A7B1BC;
+  --color-border-color: rgba(148, 163, 184, 0.20);
+
+  --color-primary-navy: #38BDF8;
+  --color-primary-blue: #22A8E0;
+  --color-accent-cyan: #38BDF8;
+
+  --color-success-green: #38BDF8;
+  --color-warning-amber: #F59E0B;
+  --color-danger-red: #F87171;
+
+  --color-soft-accent: rgba(56, 189, 248, 0.10);
+  --color-btn-text: #0B1117;
+
+  --background: #0B1117;
+  --foreground: #F1F5F9;
+}
+
+:root[data-theme="light"],
+.light {
+  /* Light Theme Overrides */
+  --color-bg-canvas: #F5F8FA;
+  --color-surface-card: #FFFFFF;
+  --color-surface-hover: #F5F8FA;
+  --color-main-text: #17232D;
+  --color-secondary-text: #60717D;
+  --color-border-color: #D9E4EA;
+
   --color-primary-navy: #173B57;
   --color-primary-blue: #245A7A;
   --color-accent-cyan: #4FAFC1;
-  --color-main-text: #17232D;
-  --color-secondary-text: #60717D;
-  --color-bg-canvas: #F5F8FA;
-  --color-surface-card: #FFFFFF;
-  --color-border-color: #D9E4EA;
 
   --color-success-green: #3D8B72;
   --color-warning-amber: #C28A32;
   --color-danger-red: #C95757;
 
-  /* Custom Spacing & Border Radii */
-  --radius-card: 8px;
-  --radius-btn: 6px;
-  
-  /* Drop Shadows */
-  --shadow-subtle: 0 1px 3px 0 rgba(23, 35, 45, 0.05);
-  --shadow-subtle-hover: 0 4px 12px 0 rgba(23, 35, 45, 0.08);
-}
+  --color-soft-accent: #E9F1F5;
+  --color-btn-text: #FFFFFF;
 
-:root {
   --background: #F5F8FA;
   --foreground: #17232D;
 }
 
+@theme {
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  --color-primary-navy: var(--color-primary-navy);
+  --color-primary-blue: var(--color-primary-blue);
+  --color-accent-cyan: var(--color-accent-cyan);
+  --color-main-text: var(--color-main-text);
+  --color-secondary-text: var(--color-secondary-text);
+  --color-bg-canvas: var(--color-bg-canvas);
+  --color-surface-card: var(--color-surface-card);
+  --color-border-color: var(--color-border-color);
+
+  --color-success-green: var(--color-success-green);
+  --color-warning-amber: var(--color-warning-amber);
+  --color-danger-red: var(--color-danger-red);
+
+  --radius-card: 8px;
+  --radius-btn: 6px;
+
+  --shadow-subtle: 0 1px 3px 0 rgba(0, 0, 0, 0.25);
+  --shadow-subtle-hover: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+}
+
 body {
-  background-color: #F5F8FA;
-  color: #17232D;
+  background-color: var(--color-bg-canvas);
+  color: var(--color-main-text);
   font-feature-settings: "cv02", "cv03", "cv04", "cv11";
 }
 
@@ -44,85 +85,174 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #F5F8FA;
+  background: var(--color-bg-canvas);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #D9E4EA;
+  background: var(--color-border-color);
   border-radius: 3px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #4FAFC1;
+  background: var(--color-accent-cyan);
 }
 
 /* Background grid & pattern */
 .cyber-grid {
   background-size: 40px 40px;
   background-image: 
-    linear-gradient(to right, rgba(23, 35, 45, 0.04) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(23, 35, 45, 0.04) 1px, transparent 1px);
+    linear-gradient(to right, var(--color-border-color) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--color-border-color) 1px, transparent 1px);
 }
 
 .blueprint-pattern {
   background-size: 80px 80px;
   background-image: 
-    radial-gradient(circle, rgba(79, 175, 193, 0.05) 1.5px, transparent 1.5px);
+    radial-gradient(circle, var(--color-soft-accent) 1.5px, transparent 1.5px);
+}
+
+/* Default Dark Theme Overrides for legacy hardcoded utility classes */
+:root:not([data-theme="light"]) {
+  /* Canvas Backgrounds */
+  .bg-\[\#F5F8FA\],
+  .bg-bg-canvas {
+    background-color: var(--color-bg-canvas) !important;
+  }
+
+  /* Card & Panel Surfaces */
+  .bg-white,
+  .bg-surface-card {
+    background-color: var(--color-surface-card) !important;
+  }
+
+  /* Text Colors */
+  .text-\[\#17232D\],
+  .text-dark-text,
+  .text-main-text {
+    color: var(--color-main-text) !important;
+  }
+
+  .text-\[\#60717D\],
+  .text-\[\#8193A0\],
+  .text-secondary-text {
+    color: var(--color-secondary-text) !important;
+  }
+
+  /* Borders */
+  .border-\[\#D9E4EA\],
+  .border-border-color {
+    border-color: var(--color-border-color) !important;
+  }
+
+  /* Primary CTAs & Navy Accent */
+  .bg-\[\#173B57\],
+  .playsec-btn-primary {
+    background-color: var(--color-primary-navy) !important;
+    color: #0B1117 !important;
+  }
+
+  .hover\:bg-\[\#245A7A\]:hover,
+  .playsec-btn-primary:hover {
+    background-color: var(--color-primary-blue) !important;
+    color: #0B1117 !important;
+  }
+
+  .text-\[\#173B57\],
+  .text-\[\#4FAFC1\] {
+    color: var(--color-accent-cyan) !important;
+  }
+
+  .border-\[\#4FAFC1\] {
+    border-color: var(--color-accent-cyan) !important;
+  }
+
+  /* Soft Badge Background */
+  .bg-\[\#E9F1F5\] {
+    background-color: var(--color-soft-accent) !important;
+  }
+
+  /* Defensive Security Accent (Cyan/Blue) */
+  .text-\[\#3D8B72\] {
+    color: var(--color-success-green) !important;
+  }
+
+  .bg-\[\#E8F4F0\] {
+    background-color: rgba(56, 189, 248, 0.10) !important;
+  }
+
+  .border-\[\#C4E4D9\] {
+    border-color: rgba(56, 189, 248, 0.25) !important;
+  }
+
+  /* Offensive Security Accent (Red/Coral) */
+  .text-\[\#C95757\] {
+    color: var(--color-danger-red) !important;
+  }
+
+  .bg-\[\#FBF0F0\] {
+    background-color: rgba(248, 113, 113, 0.10) !important;
+  }
+
+  .border-\[\#F5D3D3\] {
+    border-color: rgba(248, 113, 113, 0.25) !important;
+  }
+
+  /* Hover and Focus States */
+  .hover\:bg-\[\#F5F8FA\]:hover,
+  .hover\:bg-white:hover {
+    background-color: var(--color-surface-hover) !important;
+  }
+
+  .focus\:bg-white:focus {
+    background-color: var(--color-surface-hover) !important;
+  }
+
+  .focus\:border-\[\#4FAFC1\]:focus {
+    border-color: var(--color-accent-cyan) !important;
+  }
+
+  /* Specific SVG fills inside primary buttons */
+  .bg-\[\#173B57\] svg {
+    color: #0B1117 !important;
+  }
+
+  /* Inputs */
+  .playsec-input {
+    background-color: var(--color-surface-card);
+    border-color: var(--color-border-color);
+    color: var(--color-main-text);
+  }
+
+  .playsec-input:focus {
+    border-color: var(--color-accent-cyan);
+    background-color: var(--color-surface-hover);
+    box-shadow: 0 0 0 2px rgba(56, 189, 248, 0.15);
+  }
+
+  /* Secondary Buttons */
+  .playsec-btn-secondary {
+    background-color: var(--color-surface-card);
+    color: var(--color-main-text);
+    border-color: var(--color-border-color);
+  }
+
+  .playsec-btn-secondary:hover {
+    background-color: var(--color-surface-hover);
+    border-color: var(--color-accent-cyan);
+  }
 }
 
 /* Card and Component Classes */
 .playsec-card {
-  background-color: #FFFFFF;
-  border: 1px solid #D9E4EA;
+  background-color: var(--color-surface-card);
+  border: 1px solid var(--color-border-color);
   border-radius: 8px;
-  box-shadow: 0 1px 3px 0 rgba(23, 35, 45, 0.04);
+  box-shadow: var(--shadow-subtle);
   transition: all 0.2s ease-in-out;
 }
 
 .playsec-card:hover {
-  border-color: #4FAFC1;
-  box-shadow: 0 4px 12px 0 rgba(23, 35, 45, 0.08);
+  border-color: var(--color-accent-cyan);
+  box-shadow: var(--shadow-subtle-hover);
 }
 
-.playsec-input {
-  background-color: #FFFFFF;
-  border: 1px solid #D9E4EA;
-  border-radius: 6px;
-  color: #17232D;
-  font-size: 0.8125rem;
-  transition: all 0.2s ease-in-out;
-}
-
-.playsec-input:focus {
-  border-color: #4FAFC1;
-  outline: none;
-  background-color: #FFFFFF;
-  box-shadow: 0 0 0 2px rgba(79, 175, 193, 0.15);
-}
-
-.playsec-btn-primary {
-  background-color: #173B57;
-  color: #FFFFFF;
-  border: 1px solid transparent;
-  border-radius: 6px;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-}
-
-.playsec-btn-primary:hover {
-  background-color: #245A7A;
-}
-
-.playsec-btn-secondary {
-  background-color: #FFFFFF;
-  color: #17232D;
-  border: 1px solid #D9E4EA;
-  border-radius: 6px;
-  font-weight: 600;
-  transition: all 0.2s ease-in-out;
-}
-
-.playsec-btn-secondary:hover {
-  background-color: #F5F8FA;
-  border-color: #4FAFC1;
-}
