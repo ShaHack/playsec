@@ -69,20 +69,32 @@ export default function PlaySecLogo({
       >
         <defs>
           <linearGradient id="ps-wave-gradient" x1="0" y1="0" x2="88" y2="0" gradientUnits="userSpaceOnUse">
-            <stop offset="0%" stopColor="var(--color-primary-navy, #173B57)" />
-            <stop offset="50%" stopColor="var(--color-primary-blue, #245A7A)" />
-            <stop offset="100%" stopColor="var(--color-accent-cyan, #4FAFC1)" />
+            <stop offset="0%" stopColor="#0A84FF" />
+            <stop offset="50%" stopColor="#38BDF8" />
+            <stop offset="100%" stopColor="#22D3EE" />
           </linearGradient>
+
+          <filter id="ps-blue-glow" x="-20%" y="-20%" width="140%" height="140%">
+            <feGaussianBlur stdDeviation="2.5" result="blur" />
+            <feColorMatrix
+              type="matrix"
+              values="0 0 0 0 0.039  0 0 0 0 0.518  0 0 0 0 1  0 0 0 0.4 0"
+            />
+            <feMerge>
+              <feMergeNode />
+              <feMergeNode in="SourceGraphic" />
+            </feMerge>
+          </filter>
         </defs>
 
-        <g>
-          <line x1="4" y1="18" x2="84" y2="18" stroke="var(--color-accent-cyan, #4FAFC1)" strokeWidth="0.8" strokeOpacity="0.25" strokeDasharray="2 2" />
+        <g filter="url(#ps-blue-glow)">
+          <line x1="4" y1="18" x2="84" y2="18" stroke="#38BDF8" strokeWidth="0.8" strokeOpacity="0.25" strokeDasharray="2 2" />
 
-          <line x1="6" y1="18" x2="16" y2="18" stroke="var(--color-primary-navy, #173B57)" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
-          <circle cx="6" cy="18" r="2.2" fill="var(--color-primary-navy, #173B57)" />
+          <line x1="6" y1="18" x2="16" y2="18" stroke="#0A84FF" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
+          <circle cx="6" cy="18" r="2.2" fill="#0A84FF" />
 
-          <line x1="71" y1="18" x2="81" y2="18" stroke="var(--color-accent-cyan, #4FAFC1)" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
-          <circle cx="81" cy="18" r="2.2" fill="var(--color-accent-cyan, #4FAFC1)" />
+          <line x1="71" y1="18" x2="81" y2="18" stroke="#22D3EE" strokeWidth="1.2" strokeOpacity="0.65" strokeDasharray="1.5 1.5" />
+          <circle cx="81" cy="18" r="2.2" fill="#22D3EE" />
 
           {barPositions.map((xPos, i) => (
             <motion.rect
@@ -98,9 +110,9 @@ export default function PlaySecLogo({
       </svg>
 
       {showText && (
-        <span className="text-[18px] font-black tracking-[0.03em] text-[#17232D] flex items-center font-sans">
+        <span className="text-[18px] font-black tracking-[0.03em] text-white flex items-center font-sans">
           PLAY
-          <span className="text-[#4FAFC1] ml-[1px]">
+          <span className="bg-gradient-to-r from-[#22D3EE] via-[#38BDF8] to-[#0A84FF] bg-clip-text text-transparent ml-[1px]">
             SEC
           </span>
         </span>
